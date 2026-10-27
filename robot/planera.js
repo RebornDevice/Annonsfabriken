@@ -1,43 +1,37 @@
-// Planerar dagens annonser utifrån inställningarna
+// Planerar dagens annonser. Stilarna nedan kan du ändra, lägga till eller ta bort.
+const stilar = [
+  { namn: 'Studio', beskrivning: 'clean premium studio product shot, soft gradient backdrop, soft diffused light, subtle reflection, minimal' },
+  { namn: 'Livsstil', beskrivning: 'lifestyle scene, the phone held naturally in a hand in a bright modern cafe, shallow depth of field, warm natural light' },
+  { namn: 'Skrivbord', beskrivning: 'on a minimal wooden desk next to a laptop and coffee, morning window light, calm and premium' },
+  { namn: 'Gata', beskrivning: 'urban street at golden hour, phone in hand, blurred city background, cinematic' },
+  { namn: 'Bil', beskrivning: 'phone mounted on a magnetic car mount in a modern car interior, sleek dashboard, evening light' },
+  { namn: 'Natur', beskrivning: 'outdoors on a smooth rock with moss, soft overcast light, scandinavian nature, fresh' },
+  { namn: 'Mork lyx', beskrivning: 'dark luxurious scene, black textured surface, dramatic rim light, high contrast, premium' },
+  { namn: 'Gym', beskrivning: 'modern gym, phone resting on a bench next to a towel and dumbbell, energetic light' },
+];
 const set = $('Inställningar').first().json;
-const cfg = $('Hämta bibliotek').first().json;
-const bas = set.bibliotek_url.replace(/[^/]*$/, '');
-const skal = cfg.produkter.filter(p => p.typ === 'Skal');
-const kombo = cfg.produkter.filter(p => p.typ === 'Kombo');
-const stilar = cfg.stilar;
-const annonsstil = (cfg.annonsstil || '').trim();
-if (!skal.length) throw new Error('Inga skalbilder i biblioteket');
-if (!stilar.length) throw new Error('Inga stilar i biblioteket');
+const bilder = $('Hitta material').all().map(i => i.json).filter(f => /^image\/(png|jpe?g|webp)$/.test(f.mimeType || ''));
+if (!bilder.length) throw new Error('Inga bilder i mappen Material. Lägg in PNG- eller JPG-bilder på dina skal.');
+const annonsstil = (set.annonsstil || '').trim();
 const slump = a => a[Math.floor(Math.random() * a.length)];
 const datum = new Date().toISOString().slice(0, 10);
 const storlek = { '1x1': '1024x1024', '4x5': '1024x1280', '9x16': '1008x1792' }[set.format] || '1024x1280';
 const plats = set.textplats === 'nere'
   ? 'Keep the lower 30% of the image calm and uncluttered (simple background only) so a headline can be placed there later. Place the product in the upper-middle part.'
   : 'Keep the upper 30% of the image calm and uncluttered (simple background only) so a headline can be placed there later. Place the product in the lower-middle part.';
-const scen = (stil) => `Create a photorealistic, high-end EMPTY scene that will be used as the background of a product advertisement for a premium phone case brand.
-Scene: ${stil.beskrivning}.${annonsstil ? `\nStyle of my best performing ads (use as inspiration for mood, light and composition): ${annonsstil}` : ''}
-There must be NO phone, NO phone case, NO product and NO hands holding anything in the image. Leave a clear, simple spot ${set.textplats === 'nere' ? 'in the upper-middle' : 'in the lower-middle'} of the image where a phone will be placed later, shot straight-on at eye level with soft, even light so a product can be added naturally.
-Keep the ${set.textplats === 'nere' ? 'lower' : 'upper'} 30% of the image calm and uncluttered so a headline can be placed there.
-Professional commercial photography, realistic, natural colors, premium feel.
-IMPORTANT: Do not add any text, letters, numbers, words, logos, watermarks or brand names anywhere in the image.`;
-const andel = 0; // bara färdiga annonser
 const ut = [];
 for (let i = 0; i < set.antal; i++) {
   const stil = stilar[i % stilar.length];
-  const exakt = Math.random() < andel; // exakt: AI gör bara miljön, appen lägger din rendering ovanpå
-  // Kombibilder (skal + tillbehör i samma bild) har typ "Kombo". Tillbehör visas aldrig ensamma.
-  const prod = (kombo.length && set.ibland_tillbehor && Math.random() < 0.25) ? slump(kombo) : slump(skal);
+  const bild = slump(bilder);
   const prompt = `Create a photorealistic, high-end social media advertising photo for a premium phone accessory brand.
-The attached image shows the exact product${prod.typ === 'Kombo' ? 's (phone case with matching accessory, always shown together)' : ''}. Reproduce it exactly as shown: identical shape, material texture and weave pattern, colors, camera cutout and camera frame, buttons, edges and proportions. Do not redesign, simplify or invent details on the product.${annonsstil ? `\nStyle of my best performing ads (use as inspiration for mood, light and composition): ${annonsstil}` : ''}
+The attached image shows the exact product. Reproduce it exactly as shown: identical shape, material texture and weave pattern, colors, camera cutout and camera frame, buttons, edges and proportions. Do not redesign, simplify or invent details on the product. If the image shows a phone case together with an accessory, always keep them together.${annonsstil ? `\nStyle of my best performing ads (use as inspiration for mood, light and composition): ${annonsstil}` : ''}
 Scene: ${stil.beskrivning}.
 ${plats}
 Professional commercial photography, realistic lighting and shadows, sharp focus on the product, natural colors, premium feel.
 IMPORTANT: Do not add any text, letters, numbers, words, logos, watermarks or brand names anywhere in the image.`;
   ut.push({ json: {
-    exakt,
-    namn: `${exakt ? 'bakgrund' : 'reborn'}-${datum}-${String(i + 1).padStart(2, '0')}-${stil.namn.toLowerCase().replace(/[^a-z0-9åäö]+/g, '-')}.png`,
-    stil: stil.namn, prompt: exakt ? scen(stil) : prompt, modell: set.modell, kvalitet: set.kvalitet, storlek,
-    produktbild: bas + prod.fil
+    namn: `reborn-${datum}-${String(i + 1).padStart(2, '0')}-${stil.namn.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.png`,
+    stil: stil.namn, prompt, modell: set.modell, kvalitet: set.kvalitet, storlek, filId: bild.id, filnamn: bild.name,
   }});
 }
 return ut;

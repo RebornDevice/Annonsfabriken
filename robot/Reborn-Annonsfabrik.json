@@ -1,8 +1,8 @@
 {
- "name": "Reborn Annonsfabrik",
+ "name": "Reborn Annonsrobot",
  "nodes": [
   {
-   "id": "31aeb100-5e5f-4e42-9552-f42fb879c17f",
+   "id": "2d76fb1d-c23b-471d-85d7-64a99266af0b",
    "name": "Varje natt",
    "type": "n8n-nodes-base.scheduleTrigger",
    "typeVersion": 1.2,
@@ -21,7 +21,7 @@
    }
   },
   {
-   "id": "04e4195b-23f3-44cb-a668-6013daaa81ab",
+   "id": "29f8d426-bf69-4449-a00b-d6c02be28bf0",
    "name": "Testa nu",
    "type": "n8n-nodes-base.manualTrigger",
    "typeVersion": 1,
@@ -32,7 +32,7 @@
    "parameters": {}
   },
   {
-   "id": "46f002d1-9e08-4f11-b4b9-3fd55938c723",
+   "id": "a44fc35d-51a7-47ae-a8dd-85a21d2020ce",
    "name": "Inställningar",
    "type": "n8n-nodes-base.set",
    "typeVersion": 3.4,
@@ -44,76 +44,83 @@
     "assignments": {
      "assignments": [
       {
-       "id": "41b079e4-2ac7-410a-a0e5-157854e7a3c2",
+       "id": "4d21a629-af6f-4acc-896f-cdf6408833fc",
        "name": "antal",
        "value": 5,
        "type": "number"
       },
       {
-       "id": "c49bfd09-280a-4f72-8804-3c816d0f33d5",
+       "id": "8fdfd628-a62b-4310-a5d1-514c3bea9833",
        "name": "modell",
        "value": "gpt-image-2",
        "type": "string"
       },
       {
-       "id": "f7198e47-a041-4e08-8f67-d97302ec35cb",
+       "id": "66db0a6e-7242-4399-a9f2-3c7f39b7b467",
        "name": "kvalitet",
        "value": "medium",
        "type": "string"
       },
       {
-       "id": "84bf0c49-f5cc-4d8f-892a-d99793c60a9b",
+       "id": "b791fd78-a202-410c-8265-75984a487038",
        "name": "format",
        "value": "4x5",
        "type": "string"
       },
       {
-       "id": "a80c3ac1-9e82-4934-943e-7846e1aebb53",
+       "id": "e537eed0-3857-4f75-ab5c-c9654cc2aa37",
        "name": "textplats",
        "value": "uppe",
        "type": "string"
       },
       {
-       "id": "b321df5e-9d00-4244-827f-87592528b7ab",
-       "name": "ibland_tillbehor",
-       "value": true,
-       "type": "boolean"
-      },
-      {
-       "id": "859af5b6-4153-4ec2-8ff8-2efb8b5df010",
-       "name": "bibliotek_url",
-       "value": "https://georgeharoun9-dotcom.github.io/Annonsfabriken/robot/bibliotek.json",
+       "id": "1e4dc723-66fc-4d63-acc5-4d2ce019e0a9",
+       "name": "annonsstil",
+       "value": "",
        "type": "string"
       }
      ]
     },
     "options": {}
    },
-   "notes": "Ändra här:\nantal = annonser per körning\nmodell = gpt-image-2 / gpt-image-1.5 / gpt-image-1-mini\nkvalitet = low / medium / high\nformat = 1x1 / 4x5 / 9x16\ntextplats = uppe / nere",
+   "notes": "antal = bilder per natt\nkvalitet = low / medium / high\nformat = 1x1 / 4x5 / 9x16\ntextplats = uppe / nere",
    "notesInFlow": true
   },
   {
-   "id": "f71ffe6c-03b0-4e34-b94a-1e125d1030f3",
-   "name": "Hämta bibliotek",
-   "type": "n8n-nodes-base.httpRequest",
-   "typeVersion": 4.2,
+   "id": "82e9473b-a917-4fa8-90c9-a4308d2ab4dc",
+   "name": "Hitta material",
+   "type": "n8n-nodes-base.googleDrive",
+   "typeVersion": 3,
    "position": [
     480,
     100
    ],
    "parameters": {
-    "url": "={{ $json.bibliotek_url }}?v={{ Date.now() }}",
+    "resource": "fileFolder",
+    "returnAll": true,
+    "filter": {
+     "folderId": {
+      "__rl": true,
+      "mode": "list",
+      "value": "",
+      "cachedResultName": "Välj mappen Material"
+     },
+     "whatToSearch": "files"
+    },
     "options": {
-     "response": {
-      "response": {
-       "responseFormat": "json"
-      }
-     }
+     "fields": [
+      "id",
+      "name",
+      "mimeType"
+     ]
     }
-   }
+   },
+   "executeOnce": true,
+   "notes": "Välj mappen Material",
+   "notesInFlow": true
   },
   {
-   "id": "591c09bf-84ca-4e5f-abb5-bc58e5363af6",
+   "id": "a71842df-e97a-4539-95f5-122783776dac",
    "name": "Planera annonser",
    "type": "n8n-nodes-base.code",
    "typeVersion": 2,
@@ -122,38 +129,38 @@
     100
    ],
    "parameters": {
-    "jsCode": "// Planerar dagens annonser utifrån inställningarna\nconst set = $('Inställningar').first().json;\nconst cfg = $('Hämta bibliotek').first().json;\nconst bas = set.bibliotek_url.replace(/[^/]*$/, '');\nconst skal = cfg.produkter.filter(p => p.typ === 'Skal');\nconst kombo = cfg.produkter.filter(p => p.typ === 'Kombo');\nconst stilar = cfg.stilar;\nconst annonsstil = (cfg.annonsstil || '').trim();\nif (!skal.length) throw new Error('Inga skalbilder i biblioteket');\nif (!stilar.length) throw new Error('Inga stilar i biblioteket');\nconst slump = a => a[Math.floor(Math.random() * a.length)];\nconst datum = new Date().toISOString().slice(0, 10);\nconst storlek = { '1x1': '1024x1024', '4x5': '1024x1280', '9x16': '1008x1792' }[set.format] || '1024x1280';\nconst plats = set.textplats === 'nere'\n  ? 'Keep the lower 30% of the image calm and uncluttered (simple background only) so a headline can be placed there later. Place the product in the upper-middle part.'\n  : 'Keep the upper 30% of the image calm and uncluttered (simple background only) so a headline can be placed there later. Place the product in the lower-middle part.';\nconst scen = (stil) => `Create a photorealistic, high-end EMPTY scene that will be used as the background of a product advertisement for a premium phone case brand.\nScene: ${stil.beskrivning}.${annonsstil ? `\\nStyle of my best performing ads (use as inspiration for mood, light and composition): ${annonsstil}` : ''}\nThere must be NO phone, NO phone case, NO product and NO hands holding anything in the image. Leave a clear, simple spot ${set.textplats === 'nere' ? 'in the upper-middle' : 'in the lower-middle'} of the image where a phone will be placed later, shot straight-on at eye level with soft, even light so a product can be added naturally.\nKeep the ${set.textplats === 'nere' ? 'lower' : 'upper'} 30% of the image calm and uncluttered so a headline can be placed there.\nProfessional commercial photography, realistic, natural colors, premium feel.\nIMPORTANT: Do not add any text, letters, numbers, words, logos, watermarks or brand names anywhere in the image.`;\nconst andel = 0; // bara färdiga annonser\nconst ut = [];\nfor (let i = 0; i < set.antal; i++) {\n  const stil = stilar[i % stilar.length];\n  const exakt = Math.random() < andel; // exakt: AI gör bara miljön, appen lägger din rendering ovanpå\n  // Kombibilder (skal + tillbehör i samma bild) har typ \"Kombo\". Tillbehör visas aldrig ensamma.\n  const prod = (kombo.length && set.ibland_tillbehor && Math.random() < 0.25) ? slump(kombo) : slump(skal);\n  const prompt = `Create a photorealistic, high-end social media advertising photo for a premium phone accessory brand.\nThe attached image shows the exact product${prod.typ === 'Kombo' ? 's (phone case with matching accessory, always shown together)' : ''}. Reproduce it exactly as shown: identical shape, material texture and weave pattern, colors, camera cutout and camera frame, buttons, edges and proportions. Do not redesign, simplify or invent details on the product.${annonsstil ? `\\nStyle of my best performing ads (use as inspiration for mood, light and composition): ${annonsstil}` : ''}\nScene: ${stil.beskrivning}.\n${plats}\nProfessional commercial photography, realistic lighting and shadows, sharp focus on the product, natural colors, premium feel.\nIMPORTANT: Do not add any text, letters, numbers, words, logos, watermarks or brand names anywhere in the image.`;\n  ut.push({ json: {\n    exakt,\n    namn: `${exakt ? 'bakgrund' : 'reborn'}-${datum}-${String(i + 1).padStart(2, '0')}-${stil.namn.toLowerCase().replace(/[^a-z0-9åäö]+/g, '-')}.png`,\n    stil: stil.namn, prompt: exakt ? scen(stil) : prompt, modell: set.modell, kvalitet: set.kvalitet, storlek,\n    produktbild: bas + prod.fil\n  }});\n}\nreturn ut;\n"
+    "jsCode": "// Planerar dagens annonser. Stilarna nedan kan du ändra, lägga till eller ta bort.\nconst stilar = [\n  { namn: 'Studio', beskrivning: 'clean premium studio product shot, soft gradient backdrop, soft diffused light, subtle reflection, minimal' },\n  { namn: 'Livsstil', beskrivning: 'lifestyle scene, the phone held naturally in a hand in a bright modern cafe, shallow depth of field, warm natural light' },\n  { namn: 'Skrivbord', beskrivning: 'on a minimal wooden desk next to a laptop and coffee, morning window light, calm and premium' },\n  { namn: 'Gata', beskrivning: 'urban street at golden hour, phone in hand, blurred city background, cinematic' },\n  { namn: 'Bil', beskrivning: 'phone mounted on a magnetic car mount in a modern car interior, sleek dashboard, evening light' },\n  { namn: 'Natur', beskrivning: 'outdoors on a smooth rock with moss, soft overcast light, scandinavian nature, fresh' },\n  { namn: 'Mork lyx', beskrivning: 'dark luxurious scene, black textured surface, dramatic rim light, high contrast, premium' },\n  { namn: 'Gym', beskrivning: 'modern gym, phone resting on a bench next to a towel and dumbbell, energetic light' },\n];\nconst set = $('Inställningar').first().json;\nconst bilder = $('Hitta material').all().map(i => i.json).filter(f => /^image\\/(png|jpe?g|webp)$/.test(f.mimeType || ''));\nif (!bilder.length) throw new Error('Inga bilder i mappen Material. Lägg in PNG- eller JPG-bilder på dina skal.');\nconst annonsstil = (set.annonsstil || '').trim();\nconst slump = a => a[Math.floor(Math.random() * a.length)];\nconst datum = new Date().toISOString().slice(0, 10);\nconst storlek = { '1x1': '1024x1024', '4x5': '1024x1280', '9x16': '1008x1792' }[set.format] || '1024x1280';\nconst plats = set.textplats === 'nere'\n  ? 'Keep the lower 30% of the image calm and uncluttered (simple background only) so a headline can be placed there later. Place the product in the upper-middle part.'\n  : 'Keep the upper 30% of the image calm and uncluttered (simple background only) so a headline can be placed there later. Place the product in the lower-middle part.';\nconst ut = [];\nfor (let i = 0; i < set.antal; i++) {\n  const stil = stilar[i % stilar.length];\n  const bild = slump(bilder);\n  const prompt = `Create a photorealistic, high-end social media advertising photo for a premium phone accessory brand.\nThe attached image shows the exact product. Reproduce it exactly as shown: identical shape, material texture and weave pattern, colors, camera cutout and camera frame, buttons, edges and proportions. Do not redesign, simplify or invent details on the product. If the image shows a phone case together with an accessory, always keep them together.${annonsstil ? `\\nStyle of my best performing ads (use as inspiration for mood, light and composition): ${annonsstil}` : ''}\nScene: ${stil.beskrivning}.\n${plats}\nProfessional commercial photography, realistic lighting and shadows, sharp focus on the product, natural colors, premium feel.\nIMPORTANT: Do not add any text, letters, numbers, words, logos, watermarks or brand names anywhere in the image.`;\n  ut.push({ json: {\n    namn: `reborn-${datum}-${String(i + 1).padStart(2, '0')}-${stil.namn.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.png`,\n    stil: stil.namn, prompt, modell: set.modell, kvalitet: set.kvalitet, storlek, filId: bild.id, filnamn: bild.name,\n  }});\n}\nreturn ut;\n"
    }
   },
   {
-   "id": "d21eeeaa-65d1-4fb2-b1a6-7c07d91ab822",
+   "id": "c8c2cedf-189c-4880-86f1-c496d5caa909",
    "name": "Hämta produktbild",
-   "type": "n8n-nodes-base.httpRequest",
-   "typeVersion": 4.2,
+   "type": "n8n-nodes-base.googleDrive",
+   "typeVersion": 3,
    "position": [
-    1200,
-    0
+    960,
+    100
    ],
    "parameters": {
-    "url": "={{ $json.produktbild }}",
+    "operation": "download",
+    "fileId": {
+     "__rl": true,
+     "mode": "id",
+     "value": "={{ $json.filId }}"
+    },
     "options": {
-     "response": {
-      "response": {
-       "responseFormat": "file",
-       "outputPropertyName": "produkt"
-      }
-     }
+     "binaryPropertyName": "produkt"
     }
    }
   },
   {
-   "id": "63cfaea0-30a9-4c29-895e-df61363af650",
+   "id": "237c040d-ca9f-458f-b475-847297357a44",
    "name": "Skapa bild (OpenAI)",
    "type": "n8n-nodes-base.httpRequest",
    "typeVersion": 4.2,
    "position": [
-    1440,
-    0
+    1200,
+    100
    ],
    "parameters": {
     "method": "POST",
@@ -211,12 +218,12 @@
    "onError": "continueRegularOutput"
   },
   {
-   "id": "fd7a4b7b-7900-45c0-aa68-543259d29e0f",
+   "id": "863a2d96-ffea-4d1a-b363-0b74e07b385c",
    "name": "Till bildfil",
    "type": "n8n-nodes-base.code",
    "typeVersion": 2,
    "position": [
-    1680,
+    1440,
     100
    ],
    "parameters": {
@@ -225,12 +232,12 @@
    }
   },
   {
-   "id": "d072d132-471a-41a1-a07a-e8b05eb9ddb2",
+   "id": "6bfc8312-571a-4d79-bb62-250a990a2a18",
    "name": "Bara lyckade",
    "type": "n8n-nodes-base.filter",
    "typeVersion": 2.2,
    "position": [
-    1920,
+    1680,
     100
    ],
    "parameters": {
@@ -243,7 +250,7 @@
      },
      "conditions": [
       {
-       "id": "baf2cd6d-db13-4a65-b254-49b9130871a8",
+       "id": "78552c25-ff42-4bb8-9d0b-25e85519a008",
        "leftValue": "={{ $json.fel }}",
        "rightValue": "",
        "operator": {
@@ -259,12 +266,12 @@
    }
   },
   {
-   "id": "9afd5c47-7f4a-4cd0-b44b-c3000239f0a4",
-   "name": "Spara i Google Drive",
+   "id": "c8a89424-9c0c-4acc-8fa5-79d66bb180cc",
+   "name": "Spara i Färdiga bilder",
    "type": "n8n-nodes-base.googleDrive",
    "typeVersion": 3,
    "position": [
-    2160,
+    1920,
     100
    ],
    "parameters": {
@@ -277,13 +284,13 @@
     "folderId": {
      "__rl": true,
      "mode": "list",
-     "value": "root",
-     "cachedResultName": "/ (Root folder)"
+     "value": "",
+     "cachedResultName": "Välj mappen Färdiga bilder"
     },
     "inputDataFieldName": "data",
     "options": {}
    },
-   "notes": "Välj mappen 'Nya annonser' här.",
+   "notes": "Välj mappen Färdiga bilder",
    "notesInFlow": true
   }
  ],
@@ -299,29 +306,18 @@
     ]
    ]
   },
-  "Testa nu": {
-   "main": [
-    [
-     {
-      "node": "Inställningar",
-      "type": "main",
-      "index": 0
-     }
-    ]
-   ]
-  },
   "Inställningar": {
    "main": [
     [
      {
-      "node": "Hämta bibliotek",
+      "node": "Hitta material",
       "type": "main",
       "index": 0
      }
     ]
    ]
   },
-  "Hämta bibliotek": {
+  "Hitta material": {
    "main": [
     [
      {
@@ -380,7 +376,18 @@
    "main": [
     [
      {
-      "node": "Spara i Google Drive",
+      "node": "Spara i Färdiga bilder",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Testa nu": {
+   "main": [
+    [
+     {
+      "node": "Inställningar",
       "type": "main",
       "index": 0
      }
