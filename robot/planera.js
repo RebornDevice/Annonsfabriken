@@ -1,37 +1,47 @@
-// Planerar dagens annonser. Stilarna nedan kan du ändra, lägga till eller ta bort.
+// Planerar annonserna. Stilarna bygger på referensbilderna och går att ändra här.
 const stilar = [
-  { namn: 'Studio', beskrivning: 'clean premium studio product shot, soft gradient backdrop, soft diffused light, subtle reflection, minimal' },
-  { namn: 'Livsstil', beskrivning: 'lifestyle scene, the phone held naturally in a hand in a bright modern cafe, shallow depth of field, warm natural light' },
-  { namn: 'Skrivbord', beskrivning: 'on a minimal wooden desk next to a laptop and coffee, morning window light, calm and premium' },
-  { namn: 'Gata', beskrivning: 'urban street at golden hour, phone in hand, blurred city background, cinematic' },
-  { namn: 'Bil', beskrivning: 'phone mounted on a magnetic car mount in a modern car interior, sleek dashboard, evening light' },
-  { namn: 'Natur', beskrivning: 'outdoors on a smooth rock with moss, soft overcast light, scandinavian nature, fresh' },
-  { namn: 'Mork lyx', beskrivning: 'dark luxurious scene, black textured surface, dramatic rim light, high contrast, premium' },
-  { namn: 'Gym', beskrivning: 'modern gym, phone resting on a bench next to a towel and dumbbell, energetic light' },
+  { namn: 'Mork sten', beskrivning: 'resting on rough dark volcanic rock / black stone, dramatic directional side light, deep shadows, dark charcoal gradient background' },
+  { namn: 'Regn och mossa', beskrivning: 'resting on a wet mossy rock outdoors, fine raindrops and water beads on the rock, overcast moody nordic light, shallow depth of field' },
+  { namn: 'Fargmatchad studio', beskrivning: 'seamless studio backdrop in a smooth gradient that matches the product color, soft top light, subtle reflection on the floor, minimal and premium' },
+  { namn: 'Sockel', beskrivning: 'standing on a raw concrete or stone pedestal block, minimal studio set, soft daylight from the side, gentle long shadows' },
+  { namn: 'Asfalt', beskrivning: 'lying on dark grainy asphalt with tiny pebbles, low raking light, gritty urban texture, cinematic contrast' },
+  { namn: 'Sprucken jord', beskrivning: 'lying on dry cracked earth / desert ground, warm golden hour light, earthy tones, strong texture' },
+  { namn: 'Linne', beskrivning: 'lying on softly draped off-white linen fabric, bright natural window light, airy, calm and clean' },
+  { namn: 'Morkt traa', beskrivning: 'lying on a dark walnut wood desk, warm moody evening light, a hint of a keyboard blurred in the background' },
 ];
+const annonsstil = 'Premium, moody product photography in the style of high-end phone case brands (Nudient, Native Union, Mous): natural or color-matched textures, dramatic directional light, rich realistic shadows, minimal composition with lots of negative space.';
 const set = $('Inställningar').first().json;
-const bilder = $('Hitta material').all().map(i => i.json).filter(f => /^image\/(png|jpe?g|webp)$/.test(f.mimeType || ''));
-if (!bilder.length) throw new Error('Inga bilder i mappen Material. Lägg in PNG- eller JPG-bilder på dina skal.');
-const annonsstil = (set.annonsstil || '').trim();
+const filer = $('Hitta robotfiler').all().map(i => i.json);
+const id = {}; for (const f of filer) id[f.name] = f.id;
+const nycklar = [...new Set(filer.map(f => (f.name.match(/^A_bild_(.+)\.png$/) || [])[1]).filter(Boolean))]
+  .filter(k => id[`A_mask_${k}.png`] && id[`A_topp_${k}.png`] && id[`C_bild_${k}.png`] && id[`C_mask_${k}.png`] && id[`C_topp_${k}.png`]);
+const bFiler = filer.filter(f => /^B_bild_.+_(L|D)\.jpg$/.test(f.name));
+const text = (typ, ton, kat) => filer.filter(f => f.name.startsWith(`R_${typ}_${ton}_${kat}_`));
+const kategori = k => (k[0] === 's' ? 's' : 'p'); // s = skal, p = övriga produkter
+if (!nycklar.length) throw new Error('Hittar inga robotfiler. Välj mappen Chat Robotfiler i steget Hitta robotfiler.');
 const slump = a => a[Math.floor(Math.random() * a.length)];
 const datum = new Date().toISOString().slice(0, 10);
-const storlek = { '1x1': '1024x1024', '4x5': '1024x1280', '9x16': '1008x1792' }[set.format] || '1024x1280';
-const plats = set.textplats === 'nere'
-  ? 'Keep the lower 30% of the image calm and uncluttered (simple background only) so a headline can be placed there later. Place the product in the upper-middle part.'
-  : 'Keep the upper 30% of the image calm and uncluttered (simple background only) so a headline can be placed there later. Place the product in the lower-middle part.';
+const vikt = { A: Number(set.andel_A ?? 0.5), B: bFiler.length ? Number(set.andel_B ?? 0.25) : 0, C: Number(set.andel_C ?? 0.25) };
+const valjTyp = () => { let r = Math.random() * (vikt.A + vikt.B + vikt.C); for (const t of ['A', 'B', 'C']) { if ((r -= vikt[t]) < 0) return t; } return 'A'; };
 const ut = [];
 for (let i = 0; i < set.antal; i++) {
-  const stil = stilar[i % stilar.length];
-  const bild = slump(bilder);
-  const prompt = `Create a photorealistic, high-end social media advertising photo for a premium phone accessory brand.
-The attached image shows the exact product. Reproduce it exactly as shown: identical shape, material texture and weave pattern, colors, camera cutout and camera frame, buttons, edges and proportions. Do not redesign, simplify or invent details on the product. If the image shows a phone case together with an accessory, always keep them together.${annonsstil ? `\nStyle of my best performing ads (use as inspiration for mood, light and composition): ${annonsstil}` : ''}
-Scene: ${stil.beskrivning}.
-${plats}
-Professional commercial photography, realistic lighting and shadows, sharp focus on the product, natural colors, premium feel.
-IMPORTANT: Do not add any text, letters, numbers, words, logos, watermarks or brand names anywhere in the image.`;
+  const typ = valjTyp();
+  const nr = String(i + 1).padStart(2, '0');
+  if (typ === 'B') {
+    const f = slump(bFiler); const ton = f.name.match(/_(L|D)\.jpg$/)[1]; const kb = f.name.match(/^B_bild_(.+)_(L|D)\.jpg$/)[1];
+    ut.push({ json: { typ, namn: `reborn-${datum}-${nr}-foto.jpg`, ids: { bild: f.id, text: slump(text('B', ton, kategori(kb))).id } } });
+    continue;
+  }
+  const k = slump(nycklar); const stil = stilar[Math.floor(Math.random() * stilar.length)];
+  const ton = Math.random() < 0.6 ? 'D' : 'L';
+  const toppTon = ton === 'D' ? 'The upper 25% of the image must be calm, simple and fairly dark so a white headline is easy to read.' : 'The upper 25% of the image must be calm, simple and light so a black headline is easy to read.';
+  const prompt = typ === 'A'
+    ? `${annonsstil}\nThe image contains a real product photo of a premium phone accessory. Keep the product exactly as it is: do not change its shape, color, texture, logo, buttons, camera frame, position, size or angle. Only create the surroundings in the transparent areas.\nScene: the product is ${stil.beskrivning}. Match the existing camera angle and perspective so the product sits naturally in the scene with realistic contact shadows and reflections.\n${toppTon} Keep the bottom 8% calm for a small logo.\nIMPORTANT: no text, letters, numbers, logos or watermarks anywhere. Do not add other phones or products.`
+    : `${annonsstil}\nThis is a real product photo placed in the middle of a tall 9:16 canvas. Extend the photo naturally into the transparent areas above and below: continue the same surface, background, lighting and colors seamlessly so it looks like one single photograph. Do not change anything inside the existing photo and do not change the product.\n${toppTon} Keep the bottom 8% calm for a small logo.\nIMPORTANT: no text, letters, numbers, logos or watermarks anywhere. Do not add other phones or products.`;
   ut.push({ json: {
-    namn: `reborn-${datum}-${String(i + 1).padStart(2, '0')}-${stil.namn.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.png`,
-    stil: stil.namn, prompt, modell: set.modell, kvalitet: set.kvalitet, storlek, filId: bild.id, filnamn: bild.name,
+    typ, namn: `reborn-${datum}-${nr}-${typ === 'A' ? stil.namn.toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'story'}.png`,
+    prompt, modell: set.modell, kvalitet: set.kvalitet, storlek: typ === 'A' ? '1024x1280' : '1008x1792',
+    ids: { bild: id[`${typ}_bild_${k}.png`], mask: id[`${typ}_mask_${k}.png`], topp: id[`${typ}_topp_${k}.png`], text: slump(text(typ, ton, kategori(k))).id },
   }});
 }
 return ut;
