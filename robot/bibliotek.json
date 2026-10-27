@@ -1,0 +1,16 @@
+{
+ "produkter": [
+  {"fil": "produkter/EXEMPEL-skal-svart.png", "typ": "Skal"}
+ ],
+ "annonsstil": "",
+ "stilar": [
+  {"namn": "Studio", "beskrivning": "clean premium studio product shot, soft gradient backdrop, soft diffused light, subtle reflection, minimal"},
+  {"namn": "Livsstil", "beskrivning": "lifestyle scene, the phone held naturally in a hand in a bright modern cafe, shallow depth of field, warm natural light"},
+  {"namn": "Skrivbord", "beskrivning": "on a minimal wooden desk next to a laptop and coffee, morning window light, calm and premium"},
+  {"namn": "Gata", "beskrivning": "urban street at golden hour, phone in hand, blurred city background, cinematic"},
+  {"namn": "Bil", "beskrivning": "phone mounted on a magnetic car mount in a modern car interior, sleek dashboard, evening light"},
+  {"namn": "Natur", "beskrivning": "outdoors on a smooth rock with moss, soft overcast light, scandinavian nature, fresh"},
+  {"namn": "Mork lyx", "beskrivning": "dark luxurious scene, black textured surface, dramatic rim light, high contrast, premium"},
+  {"namn": "Gym", "beskrivning": "modern gym, phone resting on a bench next to a towel and dumbbell, energetic light"}
+ ]
+}

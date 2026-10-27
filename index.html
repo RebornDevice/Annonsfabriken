@@ -1,0 +1,926 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Annonsfabriken">
+<meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<title>Annonsfabriken</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/ag-psd@31.0.2/dist/bundle.js"></script>
+<style>
+:root{
+  --bg:#f2f2f7; --bg2:#e9e9f0; --glass:rgba(255,255,255,.62); --glass-strong:rgba(255,255,255,.82);
+  --stroke:rgba(255,255,255,.75); --hair:rgba(0,0,0,.08); --text:#111114; --muted:#6e6e78;
+  --accent:#0a84ff; --accent-ink:#fff; --danger:#ff3b30; --good:#34c759; --shadow:0 10px 30px rgba(0,0,0,.08);
+  --blob1:#c7dcff; --blob2:#ffd9e8; --blob3:#d8f5e4;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#000; --bg2:#0d0d10; --glass:rgba(30,30,34,.58); --glass-strong:rgba(38,38,44,.85);
+    --stroke:rgba(255,255,255,.10); --hair:rgba(255,255,255,.10); --text:#f5f5f7; --muted:#9a9aa4;
+    --shadow:0 10px 30px rgba(0,0,0,.5); --blob1:#0b2a55; --blob2:#3a0f2a; --blob3:#0b3322;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#000; --bg2:#0d0d10; --glass:rgba(30,30,34,.58); --glass-strong:rgba(38,38,44,.85);
+  --stroke:rgba(255,255,255,.10); --hair:rgba(255,255,255,.10); --text:#f5f5f7; --muted:#9a9aa4;
+  --shadow:0 10px 30px rgba(0,0,0,.5); --blob1:#0b2a55; --blob2:#3a0f2a; --blob3:#0b3322;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Poppins",system-ui,sans-serif;
+  background:var(--bg); color:var(--text); -webkit-user-select:none; user-select:none;
+  -webkit-touch-callout:none; touch-action:manipulation; overscroll-behavior:none;
+}
+input,textarea{-webkit-user-select:text;user-select:text;font:inherit;color:inherit}
+.bgfx{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.bgfx i{position:absolute;border-radius:50%;filter:blur(60px);opacity:.9}
+.bgfx i:nth-child(1){width:60vw;height:60vw;background:var(--blob1);top:-15vw;left:-10vw}
+.bgfx i:nth-child(2){width:55vw;height:55vw;background:var(--blob2);top:30vh;right:-20vw}
+.bgfx i:nth-child(3){width:50vw;height:50vw;background:var(--blob3);bottom:-15vw;left:10vw}
+main{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 14px) 16px calc(env(safe-area-inset-bottom) + 110px)}
+h1{font-size:32px;font-weight:800;letter-spacing:-.02em;margin:6px 4px 14px}
+.glass{background:var(--glass);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);
+  border:1px solid var(--stroke);border-radius:22px;box-shadow:var(--shadow)}
+.card{padding:14px;margin-bottom:14px}
+.sec-h{display:flex;align-items:center;justify-content:space-between;cursor:pointer;min-height:36px}
+.sec-h h2{font-size:17px;font-weight:700;margin:0}
+.sec-h .chev{transition:transform .25s;opacity:.5;font-size:14px}
+.card.closed .sec-b{display:none}
+.card.closed .chev{transform:rotate(-90deg)}
+.sec-b{margin-top:10px}
+.muted{color:var(--muted);font-size:13px;line-height:1.4}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn{appearance:none;border:0;border-radius:16px;min-height:48px;padding:0 18px;font-size:16px;font-weight:600;
+  background:var(--glass-strong);color:var(--text);border:1px solid var(--hair);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border:0}
+.btn.danger{color:var(--danger)}
+.btn.wide{width:100%}
+.btn.big{min-height:58px;font-size:18px;border-radius:20px}
+.btn:disabled{opacity:.45}
+.btn.sm{min-height:40px;padding:0 14px;font-size:14px;border-radius:13px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{min-height:42px;padding:0 15px;border-radius:21px;border:1px solid var(--hair);background:var(--glass-strong);
+  font-size:15px;font-weight:500;display:inline-flex;align-items:center;cursor:pointer}
+.chip.on{background:var(--accent);color:#fff;border-color:transparent}
+.seg{display:flex;background:var(--bg2);border-radius:14px;padding:3px;gap:3px}
+.seg button{flex:1;border:0;background:transparent;color:var(--text);min-height:42px;border-radius:11px;font-size:15px;font-weight:600;cursor:pointer}
+.seg button.on{background:var(--glass-strong);box-shadow:0 2px 8px rgba(0,0,0,.12)}
+label.f{display:block;font-size:13px;color:var(--muted);margin:12px 2px 6px;font-weight:600}
+.inp{width:100%;min-height:48px;border-radius:14px;border:1px solid var(--hair);background:var(--glass-strong);padding:12px 14px;font-size:16px;outline:none}
+textarea.inp{min-height:110px;resize:vertical;line-height:1.4}
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px}
+.thumb{position:relative;aspect-ratio:1;border-radius:16px;overflow:hidden;background:var(--bg2);border:2px solid transparent;cursor:pointer}
+.thumb img{width:100%;height:100%;object-fit:contain;display:block;background:repeating-conic-gradient(rgba(128,128,128,.12) 0 25%,transparent 0 50%) 0 0/16px 16px}
+.thumb.sel{border-color:var(--accent)}
+.thumb .tag{position:absolute;left:6px;bottom:6px;font-size:11px;font-weight:700;padding:3px 7px;border-radius:9px;background:rgba(0,0,0,.6);color:#fff}
+.thumb .x{position:absolute;right:5px;top:5px;width:30px;height:30px;border-radius:15px;background:rgba(0,0,0,.55);color:#fff;border:0;font-size:16px;cursor:pointer}
+.thumb .ck{position:absolute;right:6px;top:6px;width:26px;height:26px;border-radius:13px;background:var(--accent);color:#fff;display:none;align-items:center;justify-content:center;font-size:15px;font-weight:800}
+.thumb.sel .ck{display:flex}
+.add{display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--muted);border:2px dashed var(--hair);background:transparent}
+.tabbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 12px);z-index:5;
+  display:flex;gap:4px;padding:6px;border-radius:30px;width:min(440px,calc(100% - 28px))}
+.tabbar button{flex:1;border:0;background:transparent;color:var(--muted);min-height:56px;border-radius:24px;font-size:11px;font-weight:600;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer}
+.tabbar button .ic{font-size:22px;line-height:1}
+.tabbar button.on{background:var(--glass-strong);color:var(--accent)}
+.view{display:none}.view.on{display:block}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.ad{position:relative;border-radius:16px;overflow:hidden;background:var(--bg2);cursor:pointer}
+.ad img{width:100%;display:block}
+.ad .fav{position:absolute;right:8px;top:8px;font-size:20px;filter:drop-shadow(0 1px 3px rgba(0,0,0,.5))}
+.ad.pending{aspect-ratio:4/5;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;text-align:center;padding:10px}
+.ad.err{aspect-ratio:4/5;display:flex;align-items:center;justify-content:center;color:var(--danger);font-size:12px;text-align:center;padding:10px}
+.spin{width:26px;height:26px;border-radius:50%;border:3px solid var(--hair);border-top-color:var(--accent);animation:sp 1s linear infinite;margin:0 auto 8px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.batch-h{display:flex;justify-content:space-between;align-items:center;margin:16px 4px 8px;font-weight:700;font-size:15px}
+.progress{height:8px;border-radius:4px;background:var(--bg2);overflow:hidden;margin-top:10px}
+.progress i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+.sheet{position:fixed;inset:0;z-index:20;display:none;background:rgba(0,0,0,.45);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.sheet.on{display:flex;align-items:flex-end;justify-content:center}
+.sheet .in{width:min(760px,100%);max-height:94vh;overflow:auto;border-radius:28px 28px 0 0;padding:16px 16px calc(env(safe-area-inset-bottom) + 18px);background:var(--glass-strong);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px)}
+.sheet img.big{width:100%;border-radius:16px;display:block;margin-bottom:12px}
+.sclose{position:sticky;top:0;float:right;width:40px;height:40px;border-radius:20px;border:0;background:var(--bg2);color:var(--text);font-size:16px;cursor:pointer;z-index:2;margin:-4px -4px 0 0}
+.grab{width:42px;height:5px;border-radius:3px;background:var(--hair);margin:0 auto 12px}
+.toast{pointer-events:none;position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 14px);transform:translateX(-50%) translateY(-120%);z-index:30;padding:12px 18px;border-radius:18px;font-size:15px;font-weight:600;transition:transform .3s;max-width:90vw;text-align:center}
+.toast.on{transform:translateX(-50%) translateY(0)}
+.list-item{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.list-item .inp{min-height:44px;padding:9px 12px;font-size:15px}
+.list-item .rm{flex:none;width:44px;height:44px;border-radius:13px;border:1px solid var(--hair);background:var(--glass-strong);color:var(--danger);font-size:18px;cursor:pointer}
+.cost{font-size:14px;font-weight:600;margin-top:10px;text-align:center}
+.steps{margin:6px 0 0;padding-left:20px;line-height:1.55;font-size:14px}
+.steps li{margin-bottom:6px}
+a{color:var(--accent)}
+.switch{position:relative;width:52px;height:32px;flex:none}
+.switch input{opacity:0;width:0;height:0}
+.switch span{position:absolute;inset:0;border-radius:16px;background:var(--bg2);border:1px solid var(--hair);transition:.2s;cursor:pointer}
+.switch span:before{content:"";position:absolute;width:26px;height:26px;left:2px;top:2px;border-radius:13px;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,.25);transition:.2s}
+.switch input:checked+span{background:var(--good)}
+.switch input:checked+span:before{transform:translateX(20px)}
+.setrow{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:52px;border-bottom:1px solid var(--hair)}
+.setrow:last-child{border-bottom:0}
+.setrow .t{font-size:16px;font-weight:500}
+.setrow .s{font-size:12px;color:var(--muted)}
+.empty{text-align:center;padding:40px 16px;color:var(--muted)}
+.empty .e{font-size:44px;margin-bottom:8px}
+.warn{background:rgba(255,159,10,.15);border:1px solid rgba(255,159,10,.4);border-radius:14px;padding:10px 12px;font-size:13px;line-height:1.4;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="bgfx"><i></i><i></i><i></i></div>
+<div class="toast glass" id="toast"></div>
+
+<main>
+<!-- ============ SKAPA ============ -->
+<section class="view on" id="v-skapa">
+  <h1>Skapa</h1>
+  <div class="seg" id="segMode" style="margin-bottom:14px"><button data-v="chatgpt" class="on">💬 ChatGPT</button><button data-v="auto">⚡ Automatiskt</button></div>
+  <div id="needKey" class="warn" style="display:none;margin:0 0 14px">Ingen OpenAI-nyckel än. Lägg in den under <b>Inställningar</b>, eller slå på <b>Testläge</b> för att prova gratis.</div>
+
+  <div class="glass card" data-sec="c-prod">
+    <div class="sec-h"><h2>1. Välj produkt</h2><span class="chev">▼</span></div>
+    <div class="sec-b">
+      <div class="muted" style="margin-bottom:10px">Tryck på en eller flera bilder. Tillbehör visas alltid tillsammans med ett skal.</div>
+      <div class="thumbs" id="pickProd"></div>
+    </div>
+  </div>
+
+  <div class="glass card" data-sec="c-style">
+    <div class="sec-h"><h2>2. Stil</h2><span class="chev">▼</span></div>
+    <div class="sec-b">
+      <div class="chips" id="pickStyle"></div>
+      <div class="setrow" style="margin-top:10px"><div><div class="t">Använd mina förebilder</div><div class="s">AI:n härmar känslan i dina bästa annonser</div></div>
+        <label class="switch"><input type="checkbox" id="useRefs" checked><span></span></label></div>
+      <div id="prodModeBox">
+        <label class="f">Hur produkten kommer in i bilden</label>
+        <div class="seg" id="segProdMode"><button data-v="A">AI bygger runt</button><button data-v="B">Exakt produkt</button><button data-v="mix" class="on">Blanda</button></div>
+        <div class="muted" style="margin-top:6px">Exakt produkt: AI:n gör bara miljön och din bild/rendering läggs ovanpå, så skalet blir alltid 100 % rätt.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="glass card" data-sec="c-text">
+    <div class="sec-h"><h2>3. Text på annonsen</h2><span class="chev">▼</span></div>
+    <div class="sec-b">
+      <div class="setrow"><div><div class="t">Rubrik i Poppins</div><div class="s">Hämtas i tur och ordning från din rubriklista</div></div>
+        <label class="switch"><input type="checkbox" id="useText" checked><span></span></label></div>
+      <label class="f">Extra rad (valfri), t.ex. erbjudande</label>
+      <input class="inp" id="subline" placeholder="Black Friday – 30 %">
+      <label class="f">Textens plats</label>
+      <div class="seg" id="segPos"><button data-v="top" class="on">Uppe</button><button data-v="bottom">Nere</button></div>
+      <div class="setrow" style="margin-top:6px"><div><div class="t">Logga</div><div class="s">Svart eller vit väljs automatiskt</div></div>
+        <label class="switch"><input type="checkbox" id="useLogo" checked><span></span></label></div>
+    </div>
+  </div>
+
+  <div class="glass card" data-sec="c-fmt">
+    <div class="sec-h"><h2>4. Format och antal</h2><span class="chev">▼</span></div>
+    <div class="sec-b">
+      <label class="f">Format</label>
+      <div class="seg" id="segFmt"><button data-v="1x1">Kvadrat 1:1</button><button data-v="4x5" class="on">Flöde 4:5</button><button data-v="9x16">Story 9:16</button></div>
+      <div id="autoOnly">
+      <label class="f">Antal annonser</label>
+      <div class="seg" id="segN"><button data-v="5">5</button><button data-v="10" class="on">10</button><button data-v="20">20</button><button data-v="50">50</button></div>
+      <label class="f">Kvalitet</label>
+      <div class="seg" id="segQ"><button data-v="low">Snabb</button><button data-v="medium" class="on">Bra</button><button data-v="high">Bäst</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cost muted" id="costEst"></div>
+  <button class="btn primary wide big" id="goBtn" style="margin-top:10px">Skapa annonser</button>
+  <div id="runBox" style="display:none" class="glass card" >
+    <div class="row" style="justify-content:space-between"><b id="runTxt">Skapar…</b><button class="btn sm danger" id="stopBtn">Stoppa</button></div>
+    <div class="progress"><i id="runBar"></i></div>
+  </div>
+</section>
+
+<!-- ============ GALLERI ============ -->
+<section class="view" id="v-galleri">
+  <h1>Galleri</h1>
+  <div class="seg" id="segGal" style="margin-bottom:10px"><button data-v="all" class="on">Alla</button><button data-v="fav">❤️ Favoriter</button></div>
+  <div class="row" style="margin-bottom:6px">
+    <button class="btn sm primary" id="impBtn">＋ Lägg in bilder</button>
+    <button class="btn sm" id="dlFav">Favoriter som JPG</button>
+    <button class="btn sm" id="dlFavPsd">Favoriter som PSD</button>
+    <button class="btn sm danger" id="clearNonFav">Släng alla utom favoriter</button>
+  </div>
+  <div id="galList"></div>
+</section>
+
+<!-- ============ BIBLIOTEK ============ -->
+<section class="view" id="v-bibliotek">
+  <h1>Bibliotek</h1>
+
+  <div class="glass card" data-sec="b-prod">
+    <div class="sec-h"><h2>Produktbilder</h2><span class="chev">▼</span></div>
+    <div class="sec-b">
+      <div class="muted" style="margin-bottom:10px">Ladda upp tydliga bilder på dina skal (helst utklippta PNG). AI:n behåller produkten så exakt den kan.</div>
+      <div class="thumbs" id="libProd"></div>
+    </div>
+  </div>
+
+  <div class="glass card" data-sec="b-logo">
+    <div class="sec-h"><h2>Loggor</h2><span class="chev">▼</span></div>
+    <div class="sec-b">
+      <div class="muted" style="margin-bottom:10px">Lägg in din svarta och vita RDEVICE-logga (PNG med genomskinlig bakgrund).</div>
+      <div class="row">
+        <div style="flex:1"><label class="f">Svart logga</label><div class="thumbs" id="logoBlack"></div></div>
+        <div style="flex:1"><label class="f">Vit logga</label><div class="thumbs" id="logoWhite"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="glass card" data-sec="b-refs">
+    <div class="sec-h"><h2>Förebilder (dina bästa annonser)</h2><span class="chev">▼</span></div>
+    <div class="sec-b">
+      <div class="muted" style="margin-bottom:10px">Annonser som sålt bra. AI:n tar känsla, ljus och upplägg från dem. Max 3 används åt gången.</div>
+      <div class="thumbs" id="libRefs"></div>
+    </div>
+  </div>
+
+  <div class="glass card closed" data-sec="b-head">
+    <div class="sec-h"><h2>Rubriker</h2><span class="chev">▼</span></div>
+    <div class="sec-b">
+      <div class="muted" style="margin-bottom:10px">En rubrik per rad. Används i tur och ordning.</div>
+      <div id="headList"></div>
+      <button class="btn sm" id="addHead">+ Lägg till rubrik</button>
+    </div>
+  </div>
+
+  <div class="glass card closed" data-sec="b-style">
+    <div class="sec-h"><h2>Stilar</h2><span class="chev">▼</span></div>
+    <div class="sec-b">
+      <div class="muted" style="margin-bottom:10px">Namn och beskrivning av miljön AI:n ska skapa. Skriv gärna på engelska.</div>
+      <div id="styleList"></div>
+      <button class="btn sm" id="addStyle">+ Lägg till stil</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ INSTÄLLNINGAR ============ -->
+<section class="view" id="v-inst">
+  <h1>Inställningar</h1>
+
+  <div class="glass card" data-sec="s-key">
+    <div class="sec-h"><h2>OpenAI-nyckel</h2><span class="chev">▼</span></div>
+    <div class="sec-b">
+      <div class="row" style="flex-wrap:nowrap">
+        <input class="inp" id="apiKey" type="password" placeholder="sk-…" autocomplete="off" spellcheck="false">
+        <button class="btn sm" id="showKey" style="flex:none">Visa</button>
+      </div>
+      <div class="muted" style="margin-top:8px">Sparas bara på den här enheten. Den skickas bara till OpenAI och finns aldrig i appens kod eller i säkerhetskopian.</div>
+      <div class="row" style="margin-top:10px"><button class="btn sm" id="testKey">Testa nyckeln</button><span class="muted" id="keyStatus"></span></div>
+    </div>
+  </div>
+
+  <div class="glass card closed" data-sec="s-guide">
+    <div class="sec-h"><h2>Så skaffar du en nyckel</h2><span class="chev">▼</span></div>
+    <div class="sec-b">
+      <ol class="steps">
+        <li>Gå till <a href="https://platform.openai.com" target="_blank" rel="noopener">platform.openai.com</a> och logga in (samma inloggning som ChatGPT fungerar).</li>
+        <li>Gå till <b>Settings → Billing</b>, lägg in kort och fyll på t.ex. 100 kr. <b>Det kostar pengar</b> (ChatGPT Plus räcker inte).</li>
+        <li>Under <b>Billing → Limits</b>: sätt en månadsgräns så du aldrig får en överraskning.</li>
+        <li>Under <b>Settings → Organization → General</b>: tryck <b>Verify organization</b> om det finns. Bildmodellerna kräver ofta att du verifierar dig med ID. Det gör du själv där.</li>
+        <li>Gå till <b>API keys → Create new secret key</b>, kopiera den och klistra in ovan.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="glass card" data-sec="s-gen">
+    <div class="sec-h"><h2>Skapande</h2><span class="chev">▼</span></div>
+    <div class="sec-b">
+      <label class="f">Bildmodell</label>
+      <div class="seg" id="segModel"><button data-v="gpt-image-2" class="on">GPT Image 2</button><button data-v="gpt-image-1.5">1.5</button><button data-v="gpt-image-1-mini">Mini (billig)</button></div>
+      <div class="setrow" style="margin-top:6px"><div><div class="t">Testläge</div><div class="s">Gratis. Gör låtsasbilder utan AI så du kan prova allt</div></div>
+        <label class="switch"><input type="checkbox" id="demoMode"><span></span></label></div>
+      <div class="setrow"><div><div class="t">Samtidigt</div><div class="s">Hur många annonser som görs parallellt</div></div>
+        <div class="seg" id="segPar" style="width:150px"><button data-v="1">1</button><button data-v="3" class="on">3</button><button data-v="5">5</button></div></div>
+    </div>
+  </div>
+
+  <div class="glass card closed" data-sec="s-look">
+    <div class="sec-h"><h2>Utseende</h2><span class="chev">▼</span></div>
+    <div class="sec-b">
+      <div class="seg" id="segTheme"><button data-v="auto" class="on">Auto</button><button data-v="light">Ljust</button><button data-v="dark">Mörkt</button></div>
+    </div>
+  </div>
+
+  <div class="glass card closed" data-sec="s-backup">
+    <div class="sec-h"><h2>Säkerhetskopia</h2><span class="chev">▼</span></div>
+    <div class="sec-b">
+      <div class="muted" style="margin-bottom:10px">Sparar bibliotek, rubriker, stilar, inställningar och favoriter i en fil. Nyckeln ingår inte.</div>
+      <div class="row">
+        <button class="btn sm" id="exportBtn">Exportera</button>
+        <button class="btn sm" id="importBtn">Importera</button>
+        <input type="file" id="importFile" accept=".json,application/json" hidden>
+      </div>
+    </div>
+  </div>
+
+  <div class="muted" style="text-align:center;margin-top:20px" id="verTxt"></div>
+</section>
+</main>
+
+<nav class="tabbar glass">
+  <button data-v="skapa" class="on"><span class="ic">✨</span>Skapa</button>
+  <button data-v="galleri"><span class="ic">🖼️</span>Galleri</button>
+  <button data-v="bibliotek"><span class="ic">📚</span>Bibliotek</button>
+  <button data-v="inst"><span class="ic">⚙️</span>Inställningar</button>
+</nav>
+
+<div class="sheet" id="sheet"><div class="in" id="sheetIn"></div></div>
+<input type="file" id="filePick" accept="image/*" multiple hidden>
+<input type="file" id="impFile" accept="image/*" multiple hidden>
+
+<script>
+const VERSION = '1.2.0';
+/* ---------------- Lagring ---------------- */
+const LS = {
+  get(k, d){ try{ const v = localStorage.getItem('af_'+k); return v===null? d : JSON.parse(v);}catch(e){return d;} },
+  set(k, v){ try{ localStorage.setItem('af_'+k, JSON.stringify(v)); }catch(e){} }
+};
+let db;
+function openDB(){ return new Promise((res,rej)=>{
+  const r = indexedDB.open('annonsfabriken',1);
+  r.onupgradeneeded = ()=>{ const d=r.result;
+    d.createObjectStore('lib',{keyPath:'id'}); d.createObjectStore('ads',{keyPath:'id'}); };
+  r.onsuccess = ()=>{ db=r.result; res(); }; r.onerror = ()=>rej(r.error);
+});}
+function tx(store, mode, fn){ return new Promise((res,rej)=>{ const t=db.transaction(store,mode); const s=t.objectStore(store);
+  const out = fn(s); t.oncomplete=()=>res(out && out.result!==undefined ? out.result : out); t.onerror=()=>rej(t.error); });}
+const dbAll = store => new Promise((res,rej)=>{ const r=db.transaction(store).objectStore(store).getAll(); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); });
+const dbPut = (store,obj) => tx(store,'readwrite',s=>s.put(obj));
+const dbDel = (store,id) => tx(store,'readwrite',s=>s.delete(id));
+const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+
+/* ---------------- Standardinnehåll ---------------- */
+const DEF_HEADS = ['1 mm tunn.','37 starka magneter.','Kameraskydd inbyggt.','Gjord för MagSafe.','Tunnare än du tror.','Skydd utan bulk.','Känn skillnaden.','Lätt. Tunn. Stark.'];
+const DEF_STYLES = [
+  {name:'Studio', desc:'clean premium studio product shot, soft gradient backdrop, soft diffused light, subtle reflection, minimal'},
+  {name:'Livsstil', desc:'lifestyle scene, the phone held naturally in a hand in a bright modern cafe, shallow depth of field, warm natural light'},
+  {name:'Skrivbord', desc:'on a minimal wooden desk next to a laptop and coffee, morning window light, calm and premium'},
+  {name:'Gata', desc:'urban street at golden hour, phone in hand, blurred city background, cinematic'},
+  {name:'Bil', desc:'phone mounted on a magnetic car mount in a modern car interior, sleek dashboard, evening light'},
+  {name:'Natur', desc:'outdoors on a smooth rock with moss, soft overcast light, scandinavian nature, fresh'},
+  {name:'Mörk lyx', desc:'dark luxurious scene, black textured surface, dramatic rim light, high contrast, premium'},
+  {name:'Gym', desc:'modern gym, phone resting on a bench next to a towel and dumbbell, energetic light'}
+];
+let S = {
+  heads: LS.get('heads', DEF_HEADS), styles: LS.get('styles', DEF_STYLES),
+  mode: LS.get('mode','chatgpt'), prodMode: LS.get('prodMode','mix'), gptStyle: LS.get('gptStyle',0), model: LS.get('model','gpt-image-2'), demo: LS.get('demo', false), par: LS.get('par',3), theme: LS.get('theme','auto'),
+  fmt: LS.get('fmt','4x5'), n: LS.get('n',10), q: LS.get('q','medium'), pos: LS.get('pos','top'),
+  useText: LS.get('useText',true), useLogo: LS.get('useLogo',true), useRefs: LS.get('useRefs',true),
+  selProd: LS.get('selProd',[]), selStyle: LS.get('selStyle',[0,1,2]), headIdx: LS.get('headIdx',0), subline: LS.get('subline',''),
+  closed: LS.get('closed',{'b-head':true,'b-style':true,'s-guide':true,'s-look':true,'s-backup':true}), galF:'all'
+};
+const save = k => LS.set(k, S[k]);
+let LIB = []; let ADS = []; const urls = new Map();
+const urlFor = (id, blob) => { if(!urls.has(id)) urls.set(id, URL.createObjectURL(blob)); return urls.get(id); };
+const dropUrl = id => { if(urls.has(id)){ URL.revokeObjectURL(urls.get(id)); urls.delete(id);} };
+
+/* ---------------- Hjälpfunktioner ---------------- */
+const $ = s => document.querySelector(s);
+function toast(msg, ms=2600){ const t=$('#toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('on'),ms); }
+function applyTheme(){ if(S.theme==='auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme',S.theme); }
+function loadImg(src){ return new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=()=>rej(new Error('Bilden kunde inte läsas')); i.src=src; }); }
+async function blobToImg(blob){ const u=URL.createObjectURL(blob); try{ return await loadImg(u);} finally{ setTimeout(()=>URL.revokeObjectURL(u),2000);} }
+function canvasBlob(c, type='image/png', q){ return new Promise(r=>c.toBlob(r,type,q)); }
+async function shrink(file, max=1536){
+  const img = await blobToImg(file); const sc = Math.min(1, max/Math.max(img.width,img.height));
+  const c=document.createElement('canvas'); c.width=Math.round(img.width*sc); c.height=Math.round(img.height*sc);
+  c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+  const png = file.type==='image/png' || file.type==='image/webp';
+  return canvasBlob(c, png?'image/png':'image/jpeg', .92);
+}
+const b64ToBlob = (b64, type='image/png') => { const bin=atob(b64); const u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i); return new Blob([u],{type}); };
+const blobToB64 = blob => new Promise(r=>{ const fr=new FileReader(); fr.onload=()=>r(fr.result); fr.readAsDataURL(blob); });
+const dataUrlToBlob = d => { const [h,b]=d.split(','); return b64ToBlob(b, h.match(/:(.*?);/)[1]); };
+function setSeg(id, val){ document.querySelectorAll('#'+id+' button').forEach(b=>b.classList.toggle('on', b.dataset.v==String(val))); }
+function bindSeg(id, key, after){ setSeg(id,S[key]); document.querySelectorAll('#'+id+' button').forEach(b=>b.onclick=()=>{
+  const v=b.dataset.v; S[key] = isNaN(+v)? v : +v; save(key); setSeg(id,S[key]); after&&after(); }); }
+function bindSw(id, key, after){ const el=$('#'+id); el.checked=!!S[key]; el.onchange=()=>{ S[key]=el.checked; save(key); after&&after(); }; }
+
+/* ---------------- Sektioner (fäll ihop) ---------------- */
+document.querySelectorAll('[data-sec]').forEach(c=>{
+  const k=c.dataset.sec; if(S.closed[k]!==undefined) c.classList.toggle('closed', !!S.closed[k]);
+  c.querySelector('.sec-h').onclick=()=>{ c.classList.toggle('closed'); S.closed[k]=c.classList.contains('closed'); save('closed'); };
+});
+
+/* ---------------- Flikar ---------------- */
+document.querySelectorAll('.tabbar button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabbar button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on', v.id==='v-'+b.dataset.v));
+  window.scrollTo(0,0); if(b.dataset.v==='galleri') renderGal();
+});
+function goTab(v){ document.querySelector('.tabbar button[data-v="'+v+'"]').click(); }
+
+/* ---------------- Bibliotek ---------------- */
+let pickCtx = null;
+$('#filePick').onchange = async e => {
+  const files=[...e.target.files]; e.target.value=''; if(!files.length||!pickCtx) return;
+  for(const f of files){
+    try{
+      const blob = await shrink(f, pickCtx.kind==='ref'?1024:1536);
+      const item = {id:uid(), kind:pickCtx.kind, blob, tag:pickCtx.tag||'', name:f.name, t:Date.now()};
+      if(pickCtx.kind==='logoB'||pickCtx.kind==='logoW'){ for(const o of LIB.filter(x=>x.kind===pickCtx.kind)){ await dbDel('lib',o.id); dropUrl(o.id);} LIB=LIB.filter(x=>x.kind!==pickCtx.kind); }
+      await dbPut('lib', item); LIB.push(item);
+      if(pickCtx.kind==='prod' && !S.selProd.length){ S.selProd=[item.id]; save('selProd'); }
+    }catch(err){ toast('Kunde inte läsa '+f.name); }
+    if(pickCtx.kind.startsWith('logo')) break;
+  }
+  renderLib(); renderPick();
+};
+function openPick(kind){
+  if(kind==='prod'){
+    sheet(`<div class="grab"></div><h2 style="margin:0 0 6px">Vad är det för bild?</h2>
+      <div class="muted" style="margin-bottom:14px">Tillbehör (AirPods-fodral, kameraskydd) visas aldrig ensamma i en annons.</div>
+      <div class="row"><button class="btn primary" style="flex:1" id="pkCase">📱 Skal</button><button class="btn" style="flex:1" id="pkAcc">🎧 Tillbehör</button></div>`);
+    $('#pkCase').onclick=()=>{ closeSheet(); pickCtx={kind:'prod',tag:'Skal'}; $('#filePick').multiple=true; $('#filePick').click(); };
+    $('#pkAcc').onclick=()=>{ closeSheet(); pickCtx={kind:'prod',tag:'Tillbehör'}; $('#filePick').multiple=true; $('#filePick').click(); };
+    return;
+  }
+  pickCtx={kind}; $('#filePick').multiple = !kind.startsWith('logo'); $('#filePick').click();
+}
+function thumbHTML(it, opts={}){ return `<div class="thumb ${opts.sel?'sel':''}" data-id="${it.id}"><img src="${urlFor(it.id,it.blob)}" alt="">
+  ${it.tag?`<span class="tag">${it.tag}</span>`:''}${opts.del?`<button class="x" data-del="${it.id}" aria-label="Ta bort">✕</button>`:''}<span class="ck">✓</span></div>`; }
+function renderLib(){
+  const grid=(el,kind,addKind)=>{ const items=LIB.filter(x=>x.kind===kind);
+    el.innerHTML = items.map(it=>thumbHTML(it,{del:true})).join('') + ((kind.startsWith('logo')&&items.length)?'':`<div class="thumb add" data-add="${addKind}">＋</div>`); };
+  grid($('#libProd'),'prod','prod'); grid($('#libRefs'),'ref','ref'); grid($('#logoBlack'),'logoB','logoB'); grid($('#logoWhite'),'logoW','logoW');
+  document.querySelectorAll('#v-bibliotek [data-add]').forEach(a=>a.onclick=()=>openPick(a.dataset.add));
+  document.querySelectorAll('#v-bibliotek [data-del]').forEach(x=>x.onclick=async ev=>{ ev.stopPropagation(); const id=x.dataset.del;
+    await dbDel('lib',id); LIB=LIB.filter(i=>i.id!==id); dropUrl(id); S.selProd=S.selProd.filter(i=>i!==id); save('selProd'); renderLib(); renderPick(); });
+  renderLists();
+}
+function renderLists(){
+  $('#headList').innerHTML = S.heads.map((h,i)=>`<div class="list-item"><input class="inp" data-h="${i}" value="${esc(h)}"><button class="rm" data-hr="${i}">✕</button></div>`).join('');
+  document.querySelectorAll('[data-h]').forEach(inp=>inp.oninput=()=>{ S.heads[+inp.dataset.h]=inp.value; save('heads'); });
+  document.querySelectorAll('[data-hr]').forEach(b=>b.onclick=()=>{ S.heads.splice(+b.dataset.hr,1); save('heads'); renderLists(); });
+  $('#styleList').innerHTML = S.styles.map((s,i)=>`<div class="glass" style="padding:10px;margin-bottom:10px;border-radius:16px">
+    <div class="list-item"><input class="inp" data-sn="${i}" value="${esc(s.name)}" placeholder="Namn"><button class="rm" data-sr="${i}">✕</button></div>
+    <textarea class="inp" style="min-height:70px" data-sd="${i}" placeholder="Beskriv miljön">${esc(s.desc)}</textarea></div>`).join('');
+  document.querySelectorAll('[data-sn]').forEach(inp=>inp.oninput=()=>{ S.styles[+inp.dataset.sn].name=inp.value; save('styles'); renderPick(); });
+  document.querySelectorAll('[data-sd]').forEach(inp=>inp.oninput=()=>{ S.styles[+inp.dataset.sd].desc=inp.value; save('styles'); });
+  document.querySelectorAll('[data-sr]').forEach(b=>b.onclick=()=>{ S.styles.splice(+b.dataset.sr,1); S.selStyle=S.selStyle.filter(i=>i<S.styles.length); save('styles'); save('selStyle'); renderLists(); renderPick(); });
+}
+$('#addHead').onclick=()=>{ S.heads.push(''); save('heads'); renderLists(); const l=document.querySelectorAll('[data-h]'); l[l.length-1]?.focus(); };
+$('#addStyle').onclick=()=>{ S.styles.push({name:'Ny stil',desc:''}); save('styles'); renderLists(); renderPick(); };
+const esc = s => String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------------- Skapa-vyn ---------------- */
+function renderPick(){
+  const prods = LIB.filter(x=>x.kind==='prod');
+  S.selProd = S.selProd.filter(id=>prods.some(p=>p.id===id));
+  $('#pickProd').innerHTML = prods.map(p=>thumbHTML(p,{sel:S.selProd.includes(p.id)})).join('') + `<div class="thumb add" id="pickAdd">＋</div>`;
+  document.querySelectorAll('#pickProd .thumb[data-id]').forEach(t=>t.onclick=()=>{ const id=t.dataset.id;
+    S.selProd = S.selProd.includes(id)? S.selProd.filter(i=>i!==id) : [...S.selProd,id].slice(-4); save('selProd'); renderPick(); });
+  $('#pickAdd').onclick=()=>openPick('prod');
+  $('#pickStyle').innerHTML = S.styles.map((s,i)=>`<div class="chip ${S.selStyle.includes(i)?'on':''}" data-si="${i}">${esc(s.name)||'Stil '+(i+1)}</div>`).join('');
+  document.querySelectorAll('[data-si]').forEach(c=>c.onclick=()=>{ const i=+c.dataset.si;
+    S.selStyle = S.selStyle.includes(i)? S.selStyle.filter(x=>x!==i) : [...S.selStyle,i]; save('selStyle'); renderPick(); });
+  const gpt = S.mode==='chatgpt';
+  $('#needKey').style.display = (!gpt && !getKey() && !S.demo) ? 'block':'none';
+  $('#autoOnly').style.display = gpt?'none':''; $('#prodModeBox').style.display = gpt?'none':'';
+  $('#goBtn').textContent = gpt ? 'Gör instruktion till ChatGPT' : 'Skapa annonser';
+  updateCost();
+}
+const PRICE = { // ungefärliga kr per annons (stående storlek), uppskattning
+  'gpt-image-2':{low:.15,medium:.55,high:2.1}, 'gpt-image-1.5':{low:.15,medium:.55,high:2.1}, 'gpt-image-1-mini':{low:.08,medium:.18,high:.6} };
+function updateCost(){
+  if(S.mode==='chatgpt'){ $('#costEst').textContent='Gratis med ditt ChatGPT-abonnemang · en annons i taget'; return; }
+  if(S.demo){ $('#costEst').textContent='Testläge: gratis, inga riktiga AI-bilder'; return; }
+  const p=(PRICE[S.model]||PRICE['gpt-image-2'])[S.q]; const tot=p*S.n;
+  $('#costEst').textContent = `Ungefär ${tot<10?tot.toFixed(1).replace('.',','):Math.round(tot)} kr för ${S.n} annonser (uppskattning)`;
+}
+bindSeg('segMode','mode',renderPick); bindSeg('segProdMode','prodMode'); bindSeg('segFmt','fmt');bindSeg('segN','n',updateCost); bindSeg('segQ','q',updateCost); bindSeg('segPos','pos');
+bindSw('useText','useText'); bindSw('useLogo','useLogo'); bindSw('useRefs','useRefs');
+$('#subline').value=S.subline; $('#subline').oninput=e=>{ S.subline=e.target.value; save('subline'); };
+
+/* ---------------- Inställningar ---------------- */
+function getKey(){ return LS.get('key',''); }
+$('#apiKey').value=getKey();
+$('#apiKey').oninput=e=>{ LS.set('key', e.target.value.trim()); renderPick(); };
+$('#showKey').onclick=()=>{ const i=$('#apiKey'); i.type = i.type==='password'?'text':'password'; $('#showKey').textContent = i.type==='password'?'Visa':'Dölj'; };
+$('#testKey').onclick=async()=>{
+  const k=getKey(); if(!k){ $('#keyStatus').textContent='Ingen nyckel'; return; }
+  $('#keyStatus').textContent='Testar…';
+  try{ const r=await fetch('https://api.openai.com/v1/models',{headers:{Authorization:'Bearer '+k}});
+    if(r.ok){ const j=await r.json(); const ids=j.data.map(m=>m.id); const has=ids.filter(i=>i.startsWith('gpt-image'));
+      $('#keyStatus').textContent = '✅ Fungerar' + (has.length? ' · bildmodeller: '+has.join(', ') : ' · inga bildmodeller syns ännu');
+    } else $('#keyStatus').textContent='❌ '+ friendlyErr(r.status, await r.text());
+  }catch(e){ $('#keyStatus').textContent='❌ Ingen kontakt med OpenAI'; }
+};
+bindSeg('segModel','model',updateCost); bindSeg('segPar','par'); bindSeg('segTheme','theme',applyTheme);
+bindSw('demoMode','demo',renderPick);
+$('#verTxt').textContent='Annonsfabriken '+VERSION;
+
+/* ---------------- Säkerhetskopia ---------------- */
+$('#exportBtn').onclick=async()=>{
+  toast('Skapar fil…');
+  const lib = await Promise.all(LIB.map(async it=>({...it, blob:await blobToB64(it.blob)})));
+  const favs = await Promise.all(ADS.filter(a=>a.fav).map(async a=>({...a, blob:await blobToB64(a.blob), base:a.base?await blobToB64(a.base):null, prods:a.prods?await Promise.all(a.prods.map(async p=>({acc:p.acc, blob:await blobToB64(p.blob)}))):null})));
+  const settings={}; ['heads','styles','model','par','theme','fmt','n','q','pos','useText','useLogo','useRefs','selStyle','subline'].forEach(k=>settings[k]=S[k]);
+  const data = {app:'annonsfabriken', v:1, date:new Date().toISOString(), settings, lib, favs};
+  const blob = new Blob([JSON.stringify(data)],{type:'application/json'});
+  downloadBlob(blob, 'annonsfabriken-backup-'+new Date().toISOString().slice(0,10)+'.json');
+};
+$('#importBtn').onclick=()=>$('#importFile').click();
+$('#importFile').onchange=async e=>{
+  const f=e.target.files[0]; e.target.value=''; if(!f) return;
+  try{ const d=JSON.parse(await f.text()); if(d.app!=='annonsfabriken') throw 0;
+    Object.entries(d.settings||{}).forEach(([k,v])=>{ S[k]=v; save(k); });
+    for(const it of d.lib||[]){ const o={...it, blob:dataUrlToBlob(it.blob)}; await dbPut('lib',o); }
+    for(const a of d.favs||[]){ const o={...a, blob:dataUrlToBlob(a.blob), base:a.base?dataUrlToBlob(a.base):null, prods:a.prods?a.prods.map(p=>({acc:p.acc, blob:dataUrlToBlob(p.blob)})):null}; await dbPut('ads',o); }
+    toast('Återställt ✅'); setTimeout(()=>location.reload(),900);
+  }catch(err){ toast('Filen gick inte att läsa'); }
+};
+function downloadBlob(blob, name){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();},1500); }
+
+/* ---------------- Ark (popup) ---------------- */
+function sheet(html){ $('#sheetIn').innerHTML='<button class="sclose" id="sClose" aria-label="Stäng">✕</button>'+html; $('#sClose').onclick=closeSheet; $('#sheet').classList.add('on'); }
+function closeSheet(){ $('#sheet').classList.remove('on'); }
+$('#sheet').onclick=e=>{ if(e.target.id==='sheet') closeSheet(); };
+
+/* ---------------- Format ---------------- */
+const FMT = { '1x1':{w:1080,h:1080}, '4x5':{w:1080,h:1350}, '9x16':{w:1080,h:1920} };
+function apiSize(model, fmt){
+  if(model==='gpt-image-2') return {'1x1':'1024x1024','4x5':'1024x1280','9x16':'1008x1792'}[fmt];
+  return {'1x1':'1024x1024','4x5':'1024x1536','9x16':'1024x1536'}[fmt];
+}
+
+/* ---------------- Prompt ---------------- */
+function buildPrompt(style, prods, nRefs, gpt){
+  if(gpt) return buildPrompt(style, prods, nRefs).replace('The first '+prods.length+' image(s) show','The first '+prods.length+' image(s) I attached show')
+    + `\nFormat: ${{'1x1':'square 1:1','4x5':'portrait 4:5','9x16':'vertical 9:16 story'}[S.fmt]}. Make one image only.`;
+  const hasAcc = prods.some(p=>p.tag==='Tillbehör');
+  const space = S.useText ? (S.pos==='top'
+     ? 'Keep the upper 30% of the image calm and uncluttered (simple background only) so a headline can be placed there later. Place the product in the lower-middle part.'
+     : 'Keep the lower 30% of the image calm and uncluttered (simple background only) so a headline can be placed there later. Place the product in the upper-middle part.')
+     : 'Compose the product as the clear hero of the image.';
+  const refTxt = nRefs ? ` The last ${nRefs} image(s) are examples of my best performing ads: use them ONLY as inspiration for mood, lighting, colors and composition. Never copy their text, logos or products.` : '';
+  return `Create a photorealistic, high-end social media advertising photo for a premium phone accessory brand.
+The first ${prods.length} image(s) show the exact product(s). Reproduce the product exactly as shown: identical shape, material texture and weave pattern, colors, camera cutout and camera frame, buttons, edges and proportions. Do not redesign, simplify or invent details on the product.${hasAcc?' Always show the accessory together with the phone case in the same scene, never alone.':''}${refTxt}
+Scene: ${style.desc || style.name}.
+${space}
+Professional commercial photography, realistic lighting and shadows, sharp focus on the product, natural colors, premium feel.
+IMPORTANT: Do not add any text, letters, numbers, words, logos, watermarks or brand names anywhere in the image.`;
+}
+
+/* ---------------- Fel på svenska ---------------- */
+function friendlyErr(status, body){
+  let m=''; try{ m=JSON.parse(body).error?.message||''; }catch(e){ m=String(body||'').slice(0,160); }
+  const low=m.toLowerCase();
+  if(status===401) return 'Nyckeln fungerar inte. Kolla att den är rätt inklistrad.';
+  if(low.includes('verif')) return 'OpenAI kräver att du verifierar ditt konto först (Settings → Organization → Verify).';
+  if(low.includes('quota')||low.includes('billing')||low.includes('credit')) return 'Slut på pengar på OpenAI-kontot. Fyll på under Billing.';
+  if(status===429) return 'För många samtidigt. Sänk "Samtidigt" i Inställningar.';
+  if(low.includes('model')&&(low.includes('not')||low.includes('exist')||low.includes('access'))) return 'Bildmodellen finns inte på ditt konto. Välj en annan i Inställningar.';
+  if(low.includes('safety')||low.includes('moderation')) return 'AI:n stoppade bilden. Prova en annan stil.';
+  return 'Fel '+status+': '+m;
+}
+
+/* ---------------- AI-anrop ---------------- */
+async function aiImage(prompt, inputs, size, signal){
+  const fd = new FormData();
+  fd.append('model', S.model); fd.append('prompt', prompt); fd.append('size', size);
+  fd.append('quality', S.q); fd.append('n','1'); fd.append('output_format','png');
+  if(S.model==='gpt-image-1.5') fd.append('input_fidelity','high');
+  inputs.forEach((b,i)=> fd.append('image[]', b, 'img'+i+(b.type==='image/png'?'.png':'.jpg')));
+  for(let attempt=0; attempt<3; attempt++){
+    const r = await fetch('https://api.openai.com/v1/images/edits',{method:'POST',headers:{Authorization:'Bearer '+getKey()},body:fd,signal});
+    if(r.ok){ const j=await r.json(); const b64=j.data?.[0]?.b64_json; if(!b64) throw new Error('Tomt svar från OpenAI'); return b64ToBlob(b64); }
+    const body = await r.text();
+    const retry = r.status>=500 || (r.status===429 && !/quota|billing/i.test(body));
+    if(!retry || attempt===2) throw new Error(friendlyErr(r.status, body));
+    await new Promise(z=>setTimeout(z, 2500*(attempt+1)));
+  }
+}
+async function aiScene(prompt, size, signal){
+  for(let attempt=0; attempt<3; attempt++){
+    const r = await fetch('https://api.openai.com/v1/images/generations',{method:'POST',signal,
+      headers:{Authorization:'Bearer '+getKey(),'Content-Type':'application/json'},
+      body:JSON.stringify({model:S.model,prompt,size,quality:S.q,n:1,output_format:'png'})});
+    if(r.ok){ const j=await r.json(); const b64=j.data?.[0]?.b64_json; if(!b64) throw new Error('Tomt svar från OpenAI'); return b64ToBlob(b64); }
+    const body = await r.text();
+    const retry = r.status>=500 || (r.status===429 && !/quota|billing/i.test(body));
+    if(!retry || attempt===2) throw new Error(friendlyErr(r.status, body));
+    await new Promise(z=>setTimeout(z, 2500*(attempt+1)));
+  }
+}
+function scenePrompt(style, pos){
+  const top = pos!=='bottom';
+  return `Create a photorealistic, high-end EMPTY scene that will be used as the background of a product advertisement for a premium phone case brand.
+Scene: ${style.desc || style.name}.
+There must be NO phone, NO phone case, NO product and NO hands holding anything in the image. Leave a clear, simple spot ${top?'in the lower-middle':'in the upper-middle'} of the image where a phone will be placed later, shot straight-on at eye level with soft, even light so a product can be added naturally.
+Keep the ${top?'upper':'lower'} 30% of the image calm and uncluttered so a headline can be placed there.
+Professional commercial photography, realistic, natural colors, premium feel.
+IMPORTANT: Do not add any text, letters, numbers, words, logos, watermarks or brand names anywhere in the image.`;
+}
+async function demoImage(prods, style, fmt, i){
+  const {w,h}=FMT[fmt]; const c=document.createElement('canvas'); c.width=w; c.height=h; const x=c.getContext('2d');
+  const hues=[210,330,150,30,265,190,0,90]; const hu=hues[i%hues.length];
+  const g=x.createLinearGradient(0,0,w,h); g.addColorStop(0,`hsl(${hu},45%,${i%2?22:80}%)`); g.addColorStop(1,`hsl(${(hu+40)%360},50%,${i%2?10:62}%)`);
+  x.fillStyle=g; x.fillRect(0,0,w,h);
+  const imgs = await Promise.all(prods.map(p=>blobToImg(p.blob)));
+  if(arguments[4]) imgs.length=0;
+  const zoneTop = S.pos==='top' ? h*.32 : h*.06; const zoneH = h*.62;
+  imgs.forEach((im,k)=>{ const sc=Math.min((w*.7/imgs.length)/im.width, zoneH/im.height); const iw=im.width*sc, ih=im.height*sc;
+    const cx = w/2 + (k-(imgs.length-1)/2)*(w*.7/imgs.length); x.shadowColor='rgba(0,0,0,.35)'; x.shadowBlur=40; x.shadowOffsetY=20;
+    x.drawImage(im, cx-iw/2, zoneTop+(zoneH-ih)/2, iw, ih); });
+  x.shadowColor='transparent'; x.fillStyle='rgba(255,255,255,.55)'; x.font='600 26px Poppins'; x.textAlign='center';
+  x.fillText('TESTLÄGE · '+style.name, w/2, S.pos==='top'? h-40 : h*.97);
+  await new Promise(z=>setTimeout(z, 500+Math.random()*700));
+  return canvasBlob(c);
+}
+
+/* ---------------- Text + logga ovanpå ---------------- */
+function regionLum(ctx, x0,y0,w,h){ const d=ctx.getImageData(x0,y0,w,h).data; let s=0,n=0;
+  for(let i=0;i<d.length;i+=16){ s+= (0.2126*d[i]+0.7152*d[i+1]+0.0722*d[i+2])/255; n++; } return s/n; }
+function wrap(ctx, text, maxW){ const words=text.split(/\s+/); const lines=[]; let line='';
+  for(const w of words){ const t=line?line+' '+w:w; if(ctx.measureText(t).width>maxW && line){ lines.push(line); line=w; } else line=t; }
+  if(line) lines.push(line); return lines; }
+// Bygger annonsen som separata lager (används både för JPG och PSD)
+async function composeLayers(baseBlob, fmt, headline, subline, pos, useLogo, prods){
+  const {w,h}=FMT[fmt]; const mk=()=>{ const c=document.createElement('canvas'); c.width=w; c.height=h; return c; };
+  const bg=mk(), bx=bg.getContext('2d');
+  const im=await blobToImg(baseBlob); const sc=Math.max(w/im.width,h/im.height); const iw=im.width*sc, ih=im.height*sc;
+  bx.drawImage(im,(w-iw)/2,(h-ih)/2,iw,ih);
+  const pad=w*.075; const top=pos!=='bottom';
+  const head=(headline||'').trim(); const sub=(subline||'').trim();
+  const lum=regionLum(bx,0,Math.round(top?0:h*.68),w,Math.round(h*.32));
+  const dark=lum<.55; const ink=dark?'#ffffff':'#0b0b0c';
+  const L={w,h,bg,dark,ink,texts:[]};
+  if(prods && prods.length){ // exakt produkt ovanpå AI-miljön
+    const ims=await Promise.all(prods.map(p=>blobToImg(p.blob)));
+    const zTop = top ? h*.34 : h*.12, zBot = top ? h*.90 : h*.66, zH=zBot-zTop;
+    let sizes=ims.map((im,i)=>{ const hh=zH*(prods[i].acc?.45:.95); return {w:im.width*hh/im.height, h:hh}; });
+    const gap=w*.03; let tot=sizes.reduce((a,b)=>a+b.w,0)+gap*(sizes.length-1);
+    const k=Math.min(1,(w*.78)/tot); sizes=sizes.map(z=>({w:z.w*k,h:z.h*k})); tot*=k;
+    L.shadow=mk(); L.prod=mk(); const sx=L.shadow.getContext('2d'), px=L.prod.getContext('2d');
+    let cx=(w-tot)/2;
+    ims.forEach((im,i)=>{ const z=sizes[i]; const x0=cx, y0=zBot-z.h;
+      sx.save(); sx.filter=`blur(${Math.round(w*.02)}px)`; sx.fillStyle=`rgba(0,0,0,${dark?.55:.32})`;
+      sx.beginPath(); sx.ellipse(x0+z.w/2, zBot-z.h*.01, z.w*.48, z.h*.035, 0, 0, Math.PI*2); sx.fill(); sx.restore();
+      px.save(); px.shadowColor='rgba(0,0,0,.28)'; px.shadowBlur=w*.035; px.shadowOffsetY=w*.018; px.drawImage(im,x0,y0,z.w,z.h); px.restore();
+      cx+=z.w+gap; });
+  }
+  if(head||sub){
+    L.scrim=mk(); const x=L.scrim.getContext('2d');
+    const g = top ? x.createLinearGradient(0,0,0,h*.42) : x.createLinearGradient(0,h,0,h*.58);
+    const tint = dark?'0,0,0':'255,255,255';
+    g.addColorStop(0,`rgba(${tint},.28)`); g.addColorStop(1,`rgba(${tint},0)`);
+    x.fillStyle=g; x.fillRect(0, top?0:h*.58, w, h*.42);
+  }
+  const meas=mk().getContext('2d');
+  let y = top ? (fmt==='9x16'? h*.12 : h*.11) : h*.80;
+  const addText=(name,lines,fs,weight,lead,track)=>{
+    const c=mk(), x=c.getContext('2d'); x.textAlign='center'; x.textBaseline='alphabetic'; x.fillStyle=ink;
+    x.font=`${weight} ${fs}px Poppins`; x.letterSpacing=track?`${track}px`:'0px';
+    lines.forEach((l,i)=>x.fillText(l, w/2, y+i*lead));
+    L.texts.push({name, canvas:c, lines, fs, weight, lead, x:w/2, y, track});
+  };
+  if(head){
+    let fs=Math.round(w*(fmt==='9x16'?.085:.08)); meas.font=`700 ${fs}px Poppins`;
+    let lines=wrap(meas,head,w-pad*2); while(lines.length>2&&fs>40){ fs-=4; meas.font=`700 ${fs}px Poppins`; lines=wrap(meas,head,w-pad*2); }
+    const lead=fs*1.1; if(!top) y-=(lines.length-1)*lead;
+    addText('Rubrik',lines,fs,700,lead,-1);
+    y+=(lines.length-1)*lead;
+    if(sub){ const sfs=Math.round(w*.038); y+=sfs*1.7; addText('Extra rad',[sub],sfs,500,sfs*1.2,0); }
+  } else if(sub){ const sfs=Math.round(w*.045); addText('Extra rad',[sub],sfs,600,sfs*1.2,0); }
+  if(useLogo!==false){
+    const logo=LIB.find(l=>l.kind===(dark?'logoW':'logoB')) || LIB.find(l=>l.kind==='logoB'||l.kind==='logoW');
+    if(logo){ const li=await blobToImg(logo.blob); const lw=w*.24; const lh=li.height*(lw/li.width);
+      const ly = top ? h-lh-h*.045 : h*.045; L.logo=mk(); L.logo.getContext('2d').drawImage(li,(w-lw)/2,ly,lw,lh); }
+  }
+  return L;
+}
+async function compose(baseBlob, fmt, headline, subline, pos=S.pos, useLogo=S.useLogo, prods){
+  const L=await composeLayers(baseBlob, fmt, headline, subline, pos, useLogo, prods);
+  const c=document.createElement('canvas'); c.width=L.w; c.height=L.h; const x=c.getContext('2d');
+  x.drawImage(L.bg,0,0); if(L.shadow) x.drawImage(L.shadow,0,0); if(L.prod) x.drawImage(L.prod,0,0); if(L.scrim) x.drawImage(L.scrim,0,0); L.texts.forEach(t=>x.drawImage(t.canvas,0,0)); if(L.logo) x.drawImage(L.logo,0,0);
+  return canvasBlob(c,'image/jpeg',.93);
+}
+// PSD med redigerbara lager
+async function makePSD(a){
+  if(!window.agPsd) throw new Error('PSD-verktyget laddades inte. Kontrollera internet.');
+  await document.fonts.load('700 60px Poppins'); await document.fonts.load('500 30px Poppins');
+  const L=await composeLayers(a.base, a.fmt, a.head, a.sub, a.pos, a.logo, a.prods);
+  const hex=L.ink==='#ffffff'?{r:255,g:255,b:255}:{r:11,g:11,b:12};
+  const children=[{name:a.prods?'Miljö (AI)':'Bakgrund (AI-bild)', canvas:L.bg}];
+  if(L.shadow) children.push({name:'Skugga', canvas:L.shadow});
+  if(L.prod) children.push({name:'Produkt (exakt)', canvas:L.prod});
+  if(L.scrim) children.push({name:'Toning bakom text', canvas:L.scrim, opacity:1});
+  L.texts.forEach(t=>children.push({name:t.name, canvas:t.canvas, text:{
+    text:t.lines.join('\r'), transform:[1,0,0,1,t.x,t.y], antiAlias:'smooth',
+    style:{font:{name:t.weight>=700?'Poppins-Bold':t.weight>=600?'Poppins-SemiBold':'Poppins-Medium'}, fontSize:t.fs, fillColor:hex,
+      autoLeading:false, leading:t.lead, tracking:t.track?Math.round(t.track/t.fs*1000):0},
+    paragraphStyle:{justification:'center'} }}));
+  if(L.logo) children.push({name:L.dark?'Logga (vit)':'Logga (svart)', canvas:L.logo});
+  const flat=document.createElement('canvas'); flat.width=L.w; flat.height=L.h; const fx=flat.getContext('2d');
+  [L.bg,L.shadow,L.prod,L.scrim,...L.texts.map(t=>t.canvas),L.logo].filter(Boolean).forEach(c=>fx.drawImage(c,0,0));
+  const buf=agPsd.writePsd({width:L.w,height:L.h,canvas:flat,children},{invalidateTextLayers:true,generateThumbnail:true});
+  return new Blob([buf],{type:'image/vnd.adobe.photoshop'});
+}
+
+/* ---------------- Körning ---------------- */
+let run=null;
+$('#goBtn').onclick=startRun;
+$('#stopBtn').onclick=()=>{ if(run){ run.stop=true; run.ctrl.abort(); toast('Stoppar…'); } };
+async function startRun(){
+  const prods = S.selProd.map(id=>LIB.find(l=>l.id===id)).filter(Boolean);
+  if(!prods.length) return toast('Välj minst en produktbild');
+  if(prods.every(p=>p.tag==='Tillbehör')) return toast('Välj också ett skal – tillbehör visas aldrig ensamma');
+  const styles = S.selStyle.map(i=>S.styles[i]).filter(Boolean);
+  if(!styles.length) return toast('Välj minst en stil');
+  if(S.useText && !S.heads.some(h=>h.trim())) return toast('Lägg till minst en rubrik i Bibliotek');
+  const refs = S.useRefs ? LIB.filter(l=>l.kind==='ref') : [];
+  if(S.mode==='chatgpt') return chatgptFlow(prods, styles, refs);
+  if(!S.demo && !getKey()){ toast('Lägg in OpenAI-nyckeln först'); return goTab('inst'); }
+  await document.fonts.load('700 60px Poppins'); await document.fonts.load('500 30px Poppins');
+  const batch = uid(); const total=S.n; const fmt=S.fmt; const size=apiSize(S.model,fmt);
+  const heads = S.heads.map(h=>h.trim()).filter(Boolean);
+  const jobs=[]; for(let i=0;i<total;i++){ const style=styles[i%styles.length]; const head=heads.length? heads[(S.headIdx+i)%heads.length]:'';
+    const pick = refs.length? shuffle(refs).slice(0,3):[]; jobs.push({i,style,head,refs:pick}); }
+  S.headIdx=(S.headIdx+total)%Math.max(1,heads.length); save('headIdx');
+  run={stop:false, ctrl:new AbortController(), done:0, fail:0, total, batch};
+  $('#goBtn').style.display='none'; $('#runBox').style.display='block'; updRun();
+  const pend = jobs.map(j=>({id:batch+'-'+j.i, batch, pending:true, t:Date.now()+j.i, style:j.style.name, head:j.head}));
+  PENDING.set(batch, pend); goTab('galleri');
+  let next=0; const workers=[];
+  for(let w=0; w<Math.min(S.par,total); w++) workers.push((async()=>{
+    while(!run.stop && next<jobs.length){ const j=jobs[next++]; const p=pend[j.i];
+      try{
+        let base; const exact = S.prodMode==='B' || (S.prodMode==='mix' && j.i%2===1);
+        const pl = exact ? prods.map(p=>({blob:p.blob, acc:p.tag==='Tillbehör'})) : null;
+        if(S.demo) base = await demoImage(prods, j.style, fmt, j.i, exact);
+        else if(exact) base = await aiScene(scenePrompt(j.style, S.pos), size, run.ctrl.signal);
+        else base = await aiImage(buildPrompt(j.style, prods, j.refs.length), [...prods.map(p=>p.blob), ...j.refs.map(r=>r.blob)], size, run.ctrl.signal);
+        const sub = S.subline||'';
+        const fin = await compose(base, fmt, S.useText? j.head:'', sub, S.pos, S.useLogo, pl);
+        const ad = {id:p.id, batch, t:p.t, style:j.style.name+(exact?' · exakt':''), head:j.head, sub, fmt, pos:S.pos, logo:S.useLogo, model:S.demo?'test':S.model, blob:fin, base, prods:pl, fav:false};
+        await dbPut('ads', ad); ADS.push(ad); p.pending=false; p.done=true; run.done++;
+      }catch(err){ if(run.stop && err.name==='AbortError'){ p.err='Stoppad'; } else { p.err=err.message||'Något gick fel'; run.fail++; if(/Nyckeln|pengar|verifierar|finns inte/.test(p.err)){ run.stop=true; run.ctrl.abort(); toast(p.err,6000);} } p.pending=false; }
+      updRun(); renderGal();
+    }
+  })());
+  await Promise.all(workers);
+  PENDING.delete(batch);
+  $('#goBtn').style.display=''; $('#runBox').style.display='none';
+  toast(`Klart: ${run.done} annonser${run.fail?` · ${run.fail} misslyckades`:''}`, 4000); run=null; renderGal();
+}
+/* ---------------- ChatGPT-läge ---------------- */
+function chatgptFlow(prods, styles, refs){
+  const style = styles[S.gptStyle % styles.length];
+  const useRefs = refs.slice(0,3);
+  const prompt = buildPrompt(style, prods, useRefs.length, true);
+  const files = [...prods, ...useRefs].map((p,i)=>new File([p.blob], `${i<prods.length?'produkt':'forebild'}-${i+1}.${p.blob.type==='image/png'?'png':'jpg'}`, {type:p.blob.type}));
+  sheet(`<div class="grab"></div><h2 style="margin:0 0 4px">Gör annonsen i ChatGPT</h2>
+    <div class="muted" style="margin-bottom:12px">Stil: <b>${esc(style.name)}</b>${styles.length>1?` · <a href="#" id="gNext">byt stil</a>`:''}</div>
+    <div class="glass" style="padding:12px;border-radius:16px;margin-bottom:10px">
+      <b>1.</b> Spara bilderna (${files.length} st) så du kan bifoga dem i ChatGPT
+      <button class="btn wide" id="gFiles" style="margin-top:8px">📤 Spara / dela bilderna</button></div>
+    <div class="glass" style="padding:12px;border-radius:16px;margin-bottom:10px">
+      <b>2.</b> Kopiera instruktionen
+      <button class="btn wide" id="gCopy" style="margin-top:8px">📋 Kopiera instruktion</button>
+      <details style="margin-top:8px"><summary class="muted">Visa instruktionen</summary><textarea class="inp" readonly style="margin-top:6px;min-height:160px;font-size:13px">${esc(prompt)}</textarea></details></div>
+    <div class="glass" style="padding:12px;border-radius:16px;margin-bottom:10px">
+      <b>3.</b> Öppna ChatGPT, bifoga bilderna, klistra in och skicka
+      <a class="btn wide" href="https://chatgpt.com/" target="_blank" rel="noopener" style="margin-top:8px;text-decoration:none">💬 Öppna ChatGPT</a></div>
+    <div class="glass" style="padding:12px;border-radius:16px">
+      <b>4.</b> Spara bilden från ChatGPT och lägg in den här. Appen lägger till rubrik och logga.
+      <button class="btn primary wide" id="gIn" style="margin-top:8px">🖼️ Lägg in bilden från ChatGPT</button>
+      <input type="file" id="gFile" accept="image/*" multiple hidden></div>`);
+  if($('#gNext')) $('#gNext').onclick=e=>{ e.preventDefault(); S.gptStyle++; save('gptStyle'); chatgptFlow(prods, styles, refs); };
+  $('#gCopy').onclick=async()=>{ try{ await navigator.clipboard.writeText(prompt); toast('Instruktionen är kopierad ✅'); }
+    catch(e){ const t=document.querySelector('#sheetIn textarea'); t.closest('details').open=true; t.select(); document.execCommand('copy'); toast('Kopierad'); } };
+  $('#gFiles').onclick=async()=>{
+    if(navigator.canShare && navigator.canShare({files})){ try{ await navigator.share({files}); return; }catch(e){ if(e.name==='AbortError') return; } }
+    files.forEach((f,i)=>setTimeout(()=>downloadBlob(f,f.name),i*400)); toast('Bilderna sparas i Hämtade filer');
+  };
+  $('#gIn').onclick=()=>$('#gFile').click();
+  $('#gFile').onchange=async e=>{
+    const fs=[...e.target.files]; e.target.value=''; if(!fs.length) return;
+    const made=await importImages(fs, style.name, 'ChatGPT');
+    if(made){ S.gptStyle++; save('gptStyle'); closeSheet(); goTab('galleri'); const last=ADS[ADS.length-1]; setTimeout(()=>openAd(last.id),300); }
+  };
+}
+// Lägger in färdiga bilder (från ChatGPT eller roboten) och sätter rubrik + logga
+async function importImages(fs, styleName, source){
+  await document.fonts.load('700 60px Poppins'); await document.fonts.load('500 30px Poppins');
+  const heads=S.heads.map(h=>h.trim()).filter(Boolean); const batch=uid(); let made=0;
+  let pl=S.selProd.map(id=>LIB.find(l=>l.id===id)).filter(Boolean);
+  if(!pl.some(p=>p.tag!=='Tillbehör')){ const c=LIB.find(l=>l.kind==='prod'&&l.tag!=='Tillbehör'); pl = c? [c] : []; }
+  pl = pl.map(p=>({blob:p.blob, acc:p.tag==='Tillbehör'}));
+  if(fs.some(f=>/^bakgrund/i.test(f.name)) && !pl.length){ toast('Lägg in en skalbild i Bibliotek först – den läggs ovanpå bakgrunderna',5000); return 0; }
+  toast(`Lägger på text på ${fs.length} bild${fs.length>1?'er':''}…`, 8000);
+  for(const f of fs){
+    try{ const base=await shrink(f, 2048); const head = (S.useText && heads.length)? heads[S.headIdx%heads.length] : ''; S.headIdx++; save('headIdx');
+      const ex=/^bakgrund/i.test(f.name) ? pl : null;
+      const fin=await compose(base, S.fmt, head, S.subline||'', S.pos, S.useLogo, ex);
+      const ad={id:uid(), batch, t:Date.now()+made, style:styleName+(ex?' · exakt':''), head, sub:S.subline||'', fmt:S.fmt, pos:S.pos, logo:S.useLogo, model:source, blob:fin, base, prods:ex, fav:false};
+      await dbPut('ads',ad); ADS.push(ad); made++;
+    }catch(err){ toast('Kunde inte läsa '+f.name); }
+  }
+  if(made) toast(`${made} annons${made>1?'er':''} klar${made>1?'a':''} ✅`);
+  renderGal(); return made;
+}
+function updRun(){ if(!run) return; const d=run.done+run.fail; $('#runTxt').textContent=`Skapar ${Math.min(d+1,run.total)} av ${run.total}…`; $('#runBar').style.width=(d/run.total*100)+'%'; }
+const shuffle = a => a.map(v=>[Math.random(),v]).sort((p,q)=>p[0]-q[0]).map(v=>v[1]);
+const PENDING = new Map();
+
+/* ---------------- Galleri ---------------- */
+bindSeg('segGal','galF',renderGal);
+function renderGal(){
+  const el=$('#galList');
+  let list = ADS.slice(); if(S.galF==='fav') list=list.filter(a=>a.fav);
+  const groups = new Map();
+  for(const [b,arr] of PENDING) groups.set(b, arr.filter(p=>!p.done).map(p=>({...p})));
+  list.sort((a,b)=>b.t-a.t).forEach(a=>{ if(!groups.has(a.batch)) groups.set(a.batch,[]); groups.get(a.batch).push(a); });
+  const order=[...groups.entries()].map(([b,arr])=>{ const all=arr.concat(ADS.filter(a=>a.batch===b && !arr.includes(a) && (S.galF!=='fav'||a.fav)));
+    return [b, all]; }).filter(([,a])=>a.length).sort((a,b)=>Math.max(...b[1].map(x=>x.t))-Math.max(...a[1].map(x=>x.t)));
+  if(!order.length){ el.innerHTML=`<div class="empty"><div class="e">${S.galF==='fav'?'❤️':'🖼️'}</div>${S.galF==='fav'?'Inga favoriter än. Tryck på en annons och spara de bästa.':'Inga annonser än. Gå till <b>Skapa</b>.'}</div>`; return; }
+  el.innerHTML = order.map(([b,arr])=>{ const d=new Date(Math.min(...arr.map(x=>x.t)));
+    const uniq=[...new Map(arr.map(a=>[a.id,a])).values()].sort((p,q)=>p.t-q.t);
+    return `<div class="batch-h"><span>${d.toLocaleDateString('sv-SE',{day:'numeric',month:'short'})} ${d.toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'})}</span><span class="muted">${uniq.filter(a=>a.blob).length} st</span></div>
+    <div class="gal">${uniq.map(a=> a.blob ? `<div class="ad" data-ad="${a.id}"><img loading="lazy" src="${urlFor(a.id,a.blob)}" alt="">${a.fav?'<span class="fav">❤️</span>':''}</div>`
+      : a.err ? `<div class="ad err">⚠️ ${esc(a.err)}</div>` : `<div class="ad pending"><div><div class="spin"></div>${esc(a.style)}</div></div>`).join('')}</div>`; }).join('');
+  el.querySelectorAll('[data-ad]').forEach(d=>d.onclick=()=>openAd(d.dataset.ad));
+}
+function openAd(id){
+  const a=ADS.find(x=>x.id===id); if(!a) return;
+  sheet(`<div class="grab"></div><img class="big" src="${urlFor(a.id,a.blob)}" alt="">
+    <div class="row" style="flex-wrap:nowrap;margin-bottom:10px">
+      <button class="btn ${a.fav?'primary':''}" style="flex:1" id="aFav">${a.fav?'❤️ Sparad':'🤍 Spara'}</button>
+      <button class="btn" style="flex:1" id="aDl">⬇️ JPG</button>
+      ${a.base?'<button class="btn" style="flex:1" id="aPsd">⬇️ PSD</button>':''}
+      <button class="btn danger" style="flex:none;width:56px" id="aDel" aria-label="Släng">🗑</button>
+    </div>
+    ${a.base?`<label class="f">Byt rubrik på den här annonsen</label>
+    <input class="inp" id="aHead" value="${esc(a.head)}">
+    <input class="inp" id="aSub" value="${esc(a.sub||'')}" placeholder="Extra rad" style="margin-top:8px">
+    <button class="btn wide" id="aRe" style="margin-top:8px">Uppdatera text</button>`:''}
+    <div class="muted" style="margin-top:10px">Stil: ${esc(a.style)} · ${a.model==='test'?'Testläge':esc(a.model)}</div>`);
+  $('#aFav').onclick=async()=>{ a.fav=!a.fav; await dbPut('ads',a); renderGal(); openAd(id); };
+  $('#aDl').onclick=()=>downloadBlob(a.blob,`reborn-annons-${a.id}.jpg`);
+  $('#aDel').onclick=async()=>{ await dbDel('ads',a.id); ADS=ADS.filter(x=>x.id!==a.id); dropUrl(a.id); closeSheet(); renderGal(); };
+  if(a.base) $('#aRe').onclick=async()=>{ await document.fonts.load('700 60px Poppins');
+    a.head=$('#aHead').value.trim(); a.sub=$('#aSub').value.trim();
+    a.blob=await compose(a.base, a.fmt, a.head, a.sub, a.pos, a.logo, a.prods); dropUrl(a.id); await dbPut('ads',a); renderGal(); openAd(id); toast('Uppdaterad'); };
+  if(a.base) $('#aPsd').onclick=async()=>{ try{ toast('Skapar PSD…'); downloadBlob(await makePSD(a), `reborn-annons-${a.id}.psd`); }catch(e){ toast(e.message||'PSD gick inte att skapa',5000); } };
+}
+$('#dlFav').onclick=async()=>{
+  const favs=ADS.filter(a=>a.fav); if(!favs.length) return toast('Inga favoriter att ladda ner');
+  if(favs.length===1) return downloadBlob(favs[0].blob,'reborn-annons.jpg');
+  if(!window.JSZip){ favs.forEach((a,i)=>setTimeout(()=>downloadBlob(a.blob,`reborn-annons-${i+1}.jpg`),i*400)); return; }
+  const z=new JSZip(); favs.forEach((a,i)=>z.file(`reborn-annons-${String(i+1).padStart(2,'0')}.jpg`, a.blob));
+  downloadBlob(await z.generateAsync({type:'blob'}), 'reborn-favoriter.zip');
+};
+$('#dlFavPsd').onclick=async()=>{
+  const favs=ADS.filter(a=>a.fav && a.base); if(!favs.length) return toast('Inga favoriter att ladda ner');
+  try{ toast(`Skapar ${favs.length} PSD-filer…`, 8000);
+    if(favs.length===1) return downloadBlob(await makePSD(favs[0]),'reborn-annons.psd');
+    const z=new JSZip(); let i=0; for(const a of favs){ i++; z.file(`reborn-annons-${String(i).padStart(2,'0')}.psd`, await makePSD(a)); }
+    downloadBlob(await z.generateAsync({type:'blob'}), 'reborn-favoriter-psd.zip'); toast('Klart ✅');
+  }catch(e){ toast(e.message||'PSD gick inte att skapa',5000); }
+};
+$('#impBtn').onclick=()=>$('#impFile').click();
+$('#impFile').onchange=async e=>{ const fs=[...e.target.files]; e.target.value=''; if(fs.length) await importImages(fs,'Roboten','Roboten'); };
+$('#clearNonFav').onclick=()=>{
+  const n=ADS.filter(a=>!a.fav).length; if(!n) return toast('Inget att slänga');
+  sheet(`<div class="grab"></div><h2 style="margin:0 0 8px">Släng ${n} annonser?</h2><div class="muted" style="margin-bottom:14px">Favoriterna sparas. Det går inte att ångra.</div>
+    <div class="row"><button class="btn" style="flex:1" id="cNo">Avbryt</button><button class="btn primary" style="flex:1;background:var(--danger)" id="cYes">Släng</button></div>`);
+  $('#cNo').onclick=closeSheet;
+  $('#cYes').onclick=async()=>{ for(const a of ADS.filter(a=>!a.fav)){ await dbDel('ads',a.id); dropUrl(a.id);} ADS=ADS.filter(a=>a.fav); closeSheet(); renderGal(); toast('Slängt'); };
+};
+
+/* ---------------- Start ---------------- */
+(async()=>{
+  applyTheme();
+  try{ await openDB(); LIB = (await dbAll('lib')).sort((a,b)=>a.t-b.t); ADS = await dbAll('ads'); }
+  catch(e){ toast('Kunde inte öppna lagringen på enheten'); }
+  renderLib(); renderPick(); renderGal();
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('sw.js').then(reg=>{ reg.update(); }).catch(()=>{});
+    let reloaded=false; navigator.serviceWorker.addEventListener('controllerchange',()=>{ if(reloaded||run) return; reloaded=true; location.reload(); });
+  }
+  if(navigator.storage?.persist) navigator.storage.persist().catch(()=>{});
+})();
+document.addEventListener('gesturestart', e=>e.preventDefault());
+document.addEventListener('dblclick', e=>e.preventDefault(), {passive:false});
+</script>
+</body>
+</html>

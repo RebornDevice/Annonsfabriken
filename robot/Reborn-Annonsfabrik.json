@@ -1,0 +1,497 @@
+{
+ "name": "Reborn Annonsfabrik",
+ "nodes": [
+  {
+   "id": "31aeb100-5e5f-4e42-9552-f42fb879c17f",
+   "name": "Varje natt",
+   "type": "n8n-nodes-base.scheduleTrigger",
+   "typeVersion": 1.2,
+   "position": [
+    0,
+    0
+   ],
+   "parameters": {
+    "rule": {
+     "interval": [
+      {
+       "triggerAtHour": 3
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "04e4195b-23f3-44cb-a668-6013daaa81ab",
+   "name": "Testa nu",
+   "type": "n8n-nodes-base.manualTrigger",
+   "typeVersion": 1,
+   "position": [
+    0,
+    200
+   ],
+   "parameters": {}
+  },
+  {
+   "id": "46f002d1-9e08-4f11-b4b9-3fd55938c723",
+   "name": "Inställningar",
+   "type": "n8n-nodes-base.set",
+   "typeVersion": 3.4,
+   "position": [
+    240,
+    100
+   ],
+   "parameters": {
+    "assignments": {
+     "assignments": [
+      {
+       "id": "41b079e4-2ac7-410a-a0e5-157854e7a3c2",
+       "name": "antal",
+       "value": 5,
+       "type": "number"
+      },
+      {
+       "id": "c49bfd09-280a-4f72-8804-3c816d0f33d5",
+       "name": "modell",
+       "value": "gpt-image-2",
+       "type": "string"
+      },
+      {
+       "id": "f7198e47-a041-4e08-8f67-d97302ec35cb",
+       "name": "kvalitet",
+       "value": "medium",
+       "type": "string"
+      },
+      {
+       "id": "84bf0c49-f5cc-4d8f-892a-d99793c60a9b",
+       "name": "format",
+       "value": "4x5",
+       "type": "string"
+      },
+      {
+       "id": "a80c3ac1-9e82-4934-943e-7846e1aebb53",
+       "name": "textplats",
+       "value": "uppe",
+       "type": "string"
+      },
+      {
+       "id": "c9b95b2a-bf65-4674-8e6c-2ed1157c8667",
+       "name": "andel_exakt",
+       "value": 0.5,
+       "type": "number"
+      },
+      {
+       "id": "b321df5e-9d00-4244-827f-87592528b7ab",
+       "name": "ibland_tillbehor",
+       "value": true,
+       "type": "boolean"
+      },
+      {
+       "id": "859af5b6-4153-4ec2-8ff8-2efb8b5df010",
+       "name": "bibliotek_url",
+       "value": "https://georgeharoun9-dotcom.github.io/Annonsfabriken/robot/bibliotek.json",
+       "type": "string"
+      }
+     ]
+    },
+    "options": {}
+   },
+   "notes": "Ändra här:\nantal = annonser per körning\nmodell = gpt-image-2 / gpt-image-1.5 / gpt-image-1-mini\nkvalitet = low / medium / high\nformat = 1x1 / 4x5 / 9x16\ntextplats = uppe / nere\nandel_exakt = 0 till 1 (0,5 = hälften blir bakgrunder där din rendering läggs på i appen)",
+   "notesInFlow": true
+  },
+  {
+   "id": "f71ffe6c-03b0-4e34-b94a-1e125d1030f3",
+   "name": "Hämta bibliotek",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    480,
+    100
+   ],
+   "parameters": {
+    "url": "={{ $json.bibliotek_url }}?v={{ Date.now() }}",
+    "options": {
+     "response": {
+      "response": {
+       "responseFormat": "json"
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "591c09bf-84ca-4e5f-abb5-bc58e5363af6",
+   "name": "Planera annonser",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    720,
+    100
+   ],
+   "parameters": {
+    "jsCode": "// Planerar dagens annonser utifrån inställningarna\nconst set = $('Inställningar').first().json;\nconst cfg = $('Hämta bibliotek').first().json;\nconst bas = set.bibliotek_url.replace(/[^/]*$/, '');\nconst skal = cfg.produkter.filter(p => p.typ === 'Skal');\nconst kombo = cfg.produkter.filter(p => p.typ === 'Kombo');\nconst stilar = cfg.stilar;\nconst annonsstil = (cfg.annonsstil || '').trim();\nif (!skal.length) throw new Error('Inga skalbilder i biblioteket');\nif (!stilar.length) throw new Error('Inga stilar i biblioteket');\nconst slump = a => a[Math.floor(Math.random() * a.length)];\nconst datum = new Date().toISOString().slice(0, 10);\nconst storlek = { '1x1': '1024x1024', '4x5': '1024x1280', '9x16': '1008x1792' }[set.format] || '1024x1280';\nconst plats = set.textplats === 'nere'\n  ? 'Keep the lower 30% of the image calm and uncluttered (simple background only) so a headline can be placed there later. Place the product in the upper-middle part.'\n  : 'Keep the upper 30% of the image calm and uncluttered (simple background only) so a headline can be placed there later. Place the product in the lower-middle part.';\nconst scen = (stil) => `Create a photorealistic, high-end EMPTY scene that will be used as the background of a product advertisement for a premium phone case brand.\nScene: ${stil.beskrivning}.${annonsstil ? `\\nStyle of my best performing ads (use as inspiration for mood, light and composition): ${annonsstil}` : ''}\nThere must be NO phone, NO phone case, NO product and NO hands holding anything in the image. Leave a clear, simple spot ${set.textplats === 'nere' ? 'in the upper-middle' : 'in the lower-middle'} of the image where a phone will be placed later, shot straight-on at eye level with soft, even light so a product can be added naturally.\nKeep the ${set.textplats === 'nere' ? 'lower' : 'upper'} 30% of the image calm and uncluttered so a headline can be placed there.\nProfessional commercial photography, realistic, natural colors, premium feel.\nIMPORTANT: Do not add any text, letters, numbers, words, logos, watermarks or brand names anywhere in the image.`;\nconst andel = Math.max(0, Math.min(1, Number(set.andel_exakt ?? 0.5)));\nconst ut = [];\nfor (let i = 0; i < set.antal; i++) {\n  const stil = stilar[i % stilar.length];\n  const exakt = Math.random() < andel; // exakt: AI gör bara miljön, appen lägger din rendering ovanpå\n  // Kombibilder (skal + tillbehör i samma bild) har typ \"Kombo\". Tillbehör visas aldrig ensamma.\n  const prod = (kombo.length && set.ibland_tillbehor && Math.random() < 0.25) ? slump(kombo) : slump(skal);\n  const prompt = `Create a photorealistic, high-end social media advertising photo for a premium phone accessory brand.\nThe attached image shows the exact product${prod.typ === 'Kombo' ? 's (phone case with matching accessory, always shown together)' : ''}. Reproduce it exactly as shown: identical shape, material texture and weave pattern, colors, camera cutout and camera frame, buttons, edges and proportions. Do not redesign, simplify or invent details on the product.${annonsstil ? `\\nStyle of my best performing ads (use as inspiration for mood, light and composition): ${annonsstil}` : ''}\nScene: ${stil.beskrivning}.\n${plats}\nProfessional commercial photography, realistic lighting and shadows, sharp focus on the product, natural colors, premium feel.\nIMPORTANT: Do not add any text, letters, numbers, words, logos, watermarks or brand names anywhere in the image.`;\n  ut.push({ json: {\n    exakt,\n    namn: `${exakt ? 'bakgrund' : 'reborn'}-${datum}-${String(i + 1).padStart(2, '0')}-${stil.namn.toLowerCase().replace(/[^a-z0-9åäö]+/g, '-')}.png`,\n    stil: stil.namn, prompt: exakt ? scen(stil) : prompt, modell: set.modell, kvalitet: set.kvalitet, storlek,\n    produktbild: bas + prod.fil\n  }});\n}\nreturn ut;\n"
+   }
+  },
+  {
+   "id": "d21eeeaa-65d1-4fb2-b1a6-7c07d91ab822",
+   "name": "Hämta produktbild",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    1200,
+    0
+   ],
+   "parameters": {
+    "url": "={{ $json.produktbild }}",
+    "options": {
+     "response": {
+      "response": {
+       "responseFormat": "file",
+       "outputPropertyName": "produkt"
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "63cfaea0-30a9-4c29-895e-df61363af650",
+   "name": "Skapa bild (OpenAI)",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    1440,
+    0
+   ],
+   "parameters": {
+    "method": "POST",
+    "url": "https://api.openai.com/v1/images/edits",
+    "authentication": "predefinedCredentialType",
+    "nodeCredentialType": "openAiApi",
+    "sendBody": true,
+    "contentType": "multipart-form-data",
+    "bodyParameters": {
+     "parameters": [
+      {
+       "name": "model",
+       "value": "={{ $('Planera annonser').item.json.modell }}"
+      },
+      {
+       "name": "prompt",
+       "value": "={{ $('Planera annonser').item.json.prompt }}"
+      },
+      {
+       "name": "size",
+       "value": "={{ $('Planera annonser').item.json.storlek }}"
+      },
+      {
+       "name": "quality",
+       "value": "={{ $('Planera annonser').item.json.kvalitet }}"
+      },
+      {
+       "name": "n",
+       "value": "1"
+      },
+      {
+       "name": "output_format",
+       "value": "png"
+      },
+      {
+       "parameterType": "formBinaryData",
+       "name": "image",
+       "inputDataFieldName": "produkt"
+      }
+     ]
+    },
+    "options": {
+     "batching": {
+      "batch": {
+       "batchSize": 2,
+       "batchInterval": 2000
+      }
+     },
+     "timeout": 300000
+    }
+   },
+   "retryOnFail": true,
+   "maxTries": 2,
+   "waitBetweenTries": 5000,
+   "onError": "continueRegularOutput"
+  },
+  {
+   "id": "fd7a4b7b-7900-45c0-aa68-543259d29e0f",
+   "name": "Till bildfil",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    1680,
+    100
+   ],
+   "parameters": {
+    "mode": "runOnceForEachItem",
+    "jsCode": "// Gör om svaret från OpenAI till en bildfil\nconst plan = $('Planera annonser').item.json;\nif ($json.error || !$json.data) {\n  const fel = $json.error ? (typeof $json.error === 'string' ? $json.error : ($json.error.message || JSON.stringify($json.error))) : 'Tomt svar';\n  return { json: { namn: plan.namn, fel } };\n}\nconst bild = await this.helpers.prepareBinaryData(Buffer.from($json.data[0].b64_json, 'base64'), plan.namn, 'image/png');\nreturn { json: { namn: plan.namn, stil: plan.stil }, binary: { data: bild } };\n"
+   }
+  },
+  {
+   "id": "d072d132-471a-41a1-a07a-e8b05eb9ddb2",
+   "name": "Bara lyckade",
+   "type": "n8n-nodes-base.filter",
+   "typeVersion": 2.2,
+   "position": [
+    1920,
+    100
+   ],
+   "parameters": {
+    "conditions": {
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "loose",
+      "version": 2
+     },
+     "conditions": [
+      {
+       "id": "baf2cd6d-db13-4a65-b254-49b9130871a8",
+       "leftValue": "={{ $json.fel }}",
+       "rightValue": "",
+       "operator": {
+        "type": "string",
+        "operation": "empty",
+        "singleValue": true
+       }
+      }
+     ],
+     "combinator": "and"
+    },
+    "options": {}
+   }
+  },
+  {
+   "id": "9afd5c47-7f4a-4cd0-b44b-c3000239f0a4",
+   "name": "Spara i Google Drive",
+   "type": "n8n-nodes-base.googleDrive",
+   "typeVersion": 3,
+   "position": [
+    2160,
+    100
+   ],
+   "parameters": {
+    "name": "={{ $json.namn }}",
+    "driveId": {
+     "__rl": true,
+     "mode": "list",
+     "value": "My Drive"
+    },
+    "folderId": {
+     "__rl": true,
+     "mode": "list",
+     "value": "root",
+     "cachedResultName": "/ (Root folder)"
+    },
+    "inputDataFieldName": "data",
+    "options": {}
+   },
+   "notes": "Välj mappen 'Nya annonser' här.",
+   "notesInFlow": true
+  },
+  {
+   "id": "9e947d59-7481-4b99-aca7-0ffb7b8fd5f9",
+   "name": "Exakt produkt?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2.2,
+   "position": [
+    960,
+    100
+   ],
+   "parameters": {
+    "conditions": {
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "loose",
+      "version": 2
+     },
+     "conditions": [
+      {
+       "id": "aa55d97f-1bf2-417e-8e68-a99e9457f36f",
+       "leftValue": "={{ $json.exakt }}",
+       "rightValue": "",
+       "operator": {
+        "type": "boolean",
+        "operation": "true",
+        "singleValue": true
+       }
+      }
+     ],
+     "combinator": "and"
+    },
+    "options": {}
+   }
+  },
+  {
+   "id": "d2220f6a-e61a-48f6-9c73-c7ce5a796c1d",
+   "name": "Skapa miljö (OpenAI)",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    1440,
+    220
+   ],
+   "parameters": {
+    "method": "POST",
+    "url": "https://api.openai.com/v1/images/generations",
+    "authentication": "predefinedCredentialType",
+    "nodeCredentialType": "openAiApi",
+    "sendBody": true,
+    "specifyBody": "json",
+    "jsonBody": "={{ JSON.stringify({ model: $json.modell, prompt: $json.prompt, size: $json.storlek, quality: $json.kvalitet, n: 1, output_format: 'png' }) }}",
+    "options": {
+     "batching": {
+      "batch": {
+       "batchSize": 2,
+       "batchInterval": 2000
+      }
+     },
+     "timeout": 300000
+    }
+   },
+   "retryOnFail": true,
+   "maxTries": 2,
+   "waitBetweenTries": 5000,
+   "onError": "continueRegularOutput"
+  }
+ ],
+ "connections": {
+  "Varje natt": {
+   "main": [
+    [
+     {
+      "node": "Inställningar",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Testa nu": {
+   "main": [
+    [
+     {
+      "node": "Inställningar",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Inställningar": {
+   "main": [
+    [
+     {
+      "node": "Hämta bibliotek",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Hämta bibliotek": {
+   "main": [
+    [
+     {
+      "node": "Planera annonser",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Planera annonser": {
+   "main": [
+    [
+     {
+      "node": "Exakt produkt?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Hämta produktbild": {
+   "main": [
+    [
+     {
+      "node": "Skapa bild (OpenAI)",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Skapa bild (OpenAI)": {
+   "main": [
+    [
+     {
+      "node": "Till bildfil",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Till bildfil": {
+   "main": [
+    [
+     {
+      "node": "Bara lyckade",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Bara lyckade": {
+   "main": [
+    [
+     {
+      "node": "Spara i Google Drive",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Exakt produkt?": {
+   "main": [
+    [
+     {
+      "node": "Skapa miljö (OpenAI)",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Hämta produktbild",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Skapa miljö (OpenAI)": {
+   "main": [
+    [
+     {
+      "node": "Till bildfil",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1",
+  "timezone": "Europe/Stockholm"
+ },
+ "pinData": {}
+}
