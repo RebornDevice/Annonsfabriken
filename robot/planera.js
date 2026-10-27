@@ -20,7 +20,7 @@ There must be NO phone, NO phone case, NO product and NO hands holding anything 
 Keep the ${set.textplats === 'nere' ? 'lower' : 'upper'} 30% of the image calm and uncluttered so a headline can be placed there.
 Professional commercial photography, realistic, natural colors, premium feel.
 IMPORTANT: Do not add any text, letters, numbers, words, logos, watermarks or brand names anywhere in the image.`;
-const andel = Math.max(0, Math.min(1, Number(set.andel_exakt ?? 0.5)));
+const andel = 0; // bara färdiga annonser
 const ut = [];
 for (let i = 0; i < set.antal; i++) {
   const stil = stilar[i % stilar.length];

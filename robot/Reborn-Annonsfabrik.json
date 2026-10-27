@@ -74,12 +74,6 @@
        "type": "string"
       },
       {
-       "id": "c9b95b2a-bf65-4674-8e6c-2ed1157c8667",
-       "name": "andel_exakt",
-       "value": 0.5,
-       "type": "number"
-      },
-      {
        "id": "b321df5e-9d00-4244-827f-87592528b7ab",
        "name": "ibland_tillbehor",
        "value": true,
@@ -95,7 +89,7 @@
     },
     "options": {}
    },
-   "notes": "Ändra här:\nantal = annonser per körning\nmodell = gpt-image-2 / gpt-image-1.5 / gpt-image-1-mini\nkvalitet = low / medium / high\nformat = 1x1 / 4x5 / 9x16\ntextplats = uppe / nere\nandel_exakt = 0 till 1 (0,5 = hälften blir bakgrunder där din rendering läggs på i appen)",
+   "notes": "Ändra här:\nantal = annonser per körning\nmodell = gpt-image-2 / gpt-image-1.5 / gpt-image-1-mini\nkvalitet = low / medium / high\nformat = 1x1 / 4x5 / 9x16\ntextplats = uppe / nere",
    "notesInFlow": true
   },
   {
@@ -128,7 +122,7 @@
     100
    ],
    "parameters": {
-    "jsCode": "// Planerar dagens annonser utifrån inställningarna\nconst set = $('Inställningar').first().json;\nconst cfg = $('Hämta bibliotek').first().json;\nconst bas = set.bibliotek_url.replace(/[^/]*$/, '');\nconst skal = cfg.produkter.filter(p => p.typ === 'Skal');\nconst kombo = cfg.produkter.filter(p => p.typ === 'Kombo');\nconst stilar = cfg.stilar;\nconst annonsstil = (cfg.annonsstil || '').trim();\nif (!skal.length) throw new Error('Inga skalbilder i biblioteket');\nif (!stilar.length) throw new Error('Inga stilar i biblioteket');\nconst slump = a => a[Math.floor(Math.random() * a.length)];\nconst datum = new Date().toISOString().slice(0, 10);\nconst storlek = { '1x1': '1024x1024', '4x5': '1024x1280', '9x16': '1008x1792' }[set.format] || '1024x1280';\nconst plats = set.textplats === 'nere'\n  ? 'Keep the lower 30% of the image calm and uncluttered (simple background only) so a headline can be placed there later. Place the product in the upper-middle part.'\n  : 'Keep the upper 30% of the image calm and uncluttered (simple background only) so a headline can be placed there later. Place the product in the lower-middle part.';\nconst scen = (stil) => `Create a photorealistic, high-end EMPTY scene that will be used as the background of a product advertisement for a premium phone case brand.\nScene: ${stil.beskrivning}.${annonsstil ? `\\nStyle of my best performing ads (use as inspiration for mood, light and composition): ${annonsstil}` : ''}\nThere must be NO phone, NO phone case, NO product and NO hands holding anything in the image. Leave a clear, simple spot ${set.textplats === 'nere' ? 'in the upper-middle' : 'in the lower-middle'} of the image where a phone will be placed later, shot straight-on at eye level with soft, even light so a product can be added naturally.\nKeep the ${set.textplats === 'nere' ? 'lower' : 'upper'} 30% of the image calm and uncluttered so a headline can be placed there.\nProfessional commercial photography, realistic, natural colors, premium feel.\nIMPORTANT: Do not add any text, letters, numbers, words, logos, watermarks or brand names anywhere in the image.`;\nconst andel = Math.max(0, Math.min(1, Number(set.andel_exakt ?? 0.5)));\nconst ut = [];\nfor (let i = 0; i < set.antal; i++) {\n  const stil = stilar[i % stilar.length];\n  const exakt = Math.random() < andel; // exakt: AI gör bara miljön, appen lägger din rendering ovanpå\n  // Kombibilder (skal + tillbehör i samma bild) har typ \"Kombo\". Tillbehör visas aldrig ensamma.\n  const prod = (kombo.length && set.ibland_tillbehor && Math.random() < 0.25) ? slump(kombo) : slump(skal);\n  const prompt = `Create a photorealistic, high-end social media advertising photo for a premium phone accessory brand.\nThe attached image shows the exact product${prod.typ === 'Kombo' ? 's (phone case with matching accessory, always shown together)' : ''}. Reproduce it exactly as shown: identical shape, material texture and weave pattern, colors, camera cutout and camera frame, buttons, edges and proportions. Do not redesign, simplify or invent details on the product.${annonsstil ? `\\nStyle of my best performing ads (use as inspiration for mood, light and composition): ${annonsstil}` : ''}\nScene: ${stil.beskrivning}.\n${plats}\nProfessional commercial photography, realistic lighting and shadows, sharp focus on the product, natural colors, premium feel.\nIMPORTANT: Do not add any text, letters, numbers, words, logos, watermarks or brand names anywhere in the image.`;\n  ut.push({ json: {\n    exakt,\n    namn: `${exakt ? 'bakgrund' : 'reborn'}-${datum}-${String(i + 1).padStart(2, '0')}-${stil.namn.toLowerCase().replace(/[^a-z0-9åäö]+/g, '-')}.png`,\n    stil: stil.namn, prompt: exakt ? scen(stil) : prompt, modell: set.modell, kvalitet: set.kvalitet, storlek,\n    produktbild: bas + prod.fil\n  }});\n}\nreturn ut;\n"
+    "jsCode": "// Planerar dagens annonser utifrån inställningarna\nconst set = $('Inställningar').first().json;\nconst cfg = $('Hämta bibliotek').first().json;\nconst bas = set.bibliotek_url.replace(/[^/]*$/, '');\nconst skal = cfg.produkter.filter(p => p.typ === 'Skal');\nconst kombo = cfg.produkter.filter(p => p.typ === 'Kombo');\nconst stilar = cfg.stilar;\nconst annonsstil = (cfg.annonsstil || '').trim();\nif (!skal.length) throw new Error('Inga skalbilder i biblioteket');\nif (!stilar.length) throw new Error('Inga stilar i biblioteket');\nconst slump = a => a[Math.floor(Math.random() * a.length)];\nconst datum = new Date().toISOString().slice(0, 10);\nconst storlek = { '1x1': '1024x1024', '4x5': '1024x1280', '9x16': '1008x1792' }[set.format] || '1024x1280';\nconst plats = set.textplats === 'nere'\n  ? 'Keep the lower 30% of the image calm and uncluttered (simple background only) so a headline can be placed there later. Place the product in the upper-middle part.'\n  : 'Keep the upper 30% of the image calm and uncluttered (simple background only) so a headline can be placed there later. Place the product in the lower-middle part.';\nconst scen = (stil) => `Create a photorealistic, high-end EMPTY scene that will be used as the background of a product advertisement for a premium phone case brand.\nScene: ${stil.beskrivning}.${annonsstil ? `\\nStyle of my best performing ads (use as inspiration for mood, light and composition): ${annonsstil}` : ''}\nThere must be NO phone, NO phone case, NO product and NO hands holding anything in the image. Leave a clear, simple spot ${set.textplats === 'nere' ? 'in the upper-middle' : 'in the lower-middle'} of the image where a phone will be placed later, shot straight-on at eye level with soft, even light so a product can be added naturally.\nKeep the ${set.textplats === 'nere' ? 'lower' : 'upper'} 30% of the image calm and uncluttered so a headline can be placed there.\nProfessional commercial photography, realistic, natural colors, premium feel.\nIMPORTANT: Do not add any text, letters, numbers, words, logos, watermarks or brand names anywhere in the image.`;\nconst andel = 0; // bara färdiga annonser\nconst ut = [];\nfor (let i = 0; i < set.antal; i++) {\n  const stil = stilar[i % stilar.length];\n  const exakt = Math.random() < andel; // exakt: AI gör bara miljön, appen lägger din rendering ovanpå\n  // Kombibilder (skal + tillbehör i samma bild) har typ \"Kombo\". Tillbehör visas aldrig ensamma.\n  const prod = (kombo.length && set.ibland_tillbehor && Math.random() < 0.25) ? slump(kombo) : slump(skal);\n  const prompt = `Create a photorealistic, high-end social media advertising photo for a premium phone accessory brand.\nThe attached image shows the exact product${prod.typ === 'Kombo' ? 's (phone case with matching accessory, always shown together)' : ''}. Reproduce it exactly as shown: identical shape, material texture and weave pattern, colors, camera cutout and camera frame, buttons, edges and proportions. Do not redesign, simplify or invent details on the product.${annonsstil ? `\\nStyle of my best performing ads (use as inspiration for mood, light and composition): ${annonsstil}` : ''}\nScene: ${stil.beskrivning}.\n${plats}\nProfessional commercial photography, realistic lighting and shadows, sharp focus on the product, natural colors, premium feel.\nIMPORTANT: Do not add any text, letters, numbers, words, logos, watermarks or brand names anywhere in the image.`;\n  ut.push({ json: {\n    exakt,\n    namn: `${exakt ? 'bakgrund' : 'reborn'}-${datum}-${String(i + 1).padStart(2, '0')}-${stil.namn.toLowerCase().replace(/[^a-z0-9åäö]+/g, '-')}.png`,\n    stil: stil.namn, prompt: exakt ? scen(stil) : prompt, modell: set.modell, kvalitet: set.kvalitet, storlek,\n    produktbild: bas + prod.fil\n  }});\n}\nreturn ut;\n"
    }
   },
   {
@@ -291,72 +285,6 @@
    },
    "notes": "Välj mappen 'Nya annonser' här.",
    "notesInFlow": true
-  },
-  {
-   "id": "9e947d59-7481-4b99-aca7-0ffb7b8fd5f9",
-   "name": "Exakt produkt?",
-   "type": "n8n-nodes-base.if",
-   "typeVersion": 2.2,
-   "position": [
-    960,
-    100
-   ],
-   "parameters": {
-    "conditions": {
-     "options": {
-      "caseSensitive": true,
-      "leftValue": "",
-      "typeValidation": "loose",
-      "version": 2
-     },
-     "conditions": [
-      {
-       "id": "aa55d97f-1bf2-417e-8e68-a99e9457f36f",
-       "leftValue": "={{ $json.exakt }}",
-       "rightValue": "",
-       "operator": {
-        "type": "boolean",
-        "operation": "true",
-        "singleValue": true
-       }
-      }
-     ],
-     "combinator": "and"
-    },
-    "options": {}
-   }
-  },
-  {
-   "id": "d2220f6a-e61a-48f6-9c73-c7ce5a796c1d",
-   "name": "Skapa miljö (OpenAI)",
-   "type": "n8n-nodes-base.httpRequest",
-   "typeVersion": 4.2,
-   "position": [
-    1440,
-    220
-   ],
-   "parameters": {
-    "method": "POST",
-    "url": "https://api.openai.com/v1/images/generations",
-    "authentication": "predefinedCredentialType",
-    "nodeCredentialType": "openAiApi",
-    "sendBody": true,
-    "specifyBody": "json",
-    "jsonBody": "={{ JSON.stringify({ model: $json.modell, prompt: $json.prompt, size: $json.storlek, quality: $json.kvalitet, n: 1, output_format: 'png' }) }}",
-    "options": {
-     "batching": {
-      "batch": {
-       "batchSize": 2,
-       "batchInterval": 2000
-      }
-     },
-     "timeout": 300000
-    }
-   },
-   "retryOnFail": true,
-   "maxTries": 2,
-   "waitBetweenTries": 5000,
-   "onError": "continueRegularOutput"
   }
  ],
  "connections": {
@@ -408,7 +336,7 @@
    "main": [
     [
      {
-      "node": "Exakt produkt?",
+      "node": "Hämta produktbild",
       "type": "main",
       "index": 0
      }
@@ -453,35 +381,6 @@
     [
      {
       "node": "Spara i Google Drive",
-      "type": "main",
-      "index": 0
-     }
-    ]
-   ]
-  },
-  "Exakt produkt?": {
-   "main": [
-    [
-     {
-      "node": "Skapa miljö (OpenAI)",
-      "type": "main",
-      "index": 0
-     }
-    ],
-    [
-     {
-      "node": "Hämta produktbild",
-      "type": "main",
-      "index": 0
-     }
-    ]
-   ]
-  },
-  "Skapa miljö (OpenAI)": {
-   "main": [
-    [
-     {
-      "node": "Till bildfil",
       "type": "main",
       "index": 0
      }
