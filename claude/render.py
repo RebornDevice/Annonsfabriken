@@ -49,9 +49,11 @@ def visa_monster(styrka=1.0):
             if n.type == 'NORMAL_MAP': n.inputs['Strength'].default_value = 1.0 + 1.0 * styrka
         tex = [n for n in nt.nodes if n.type == 'TEX_IMAGE' and b.inputs['Base Color'].links and b.inputs['Base Color'].links[0].from_node == n]
         if tex:
-            mx = nt.nodes.new('ShaderNodeMix'); mx.data_type = 'RGBA'; mx.blend_type = 'MULTIPLY'; mx.inputs['Factor'].default_value = 1.0
-            k = 1 + 0.8 * styrka; mx.inputs['B'].default_value = (k, k, k, 1)   # ljusare vävrutor, svarta förblir mörka
-            nt.links.new(tex[0].outputs['Color'], mx.inputs['A']); nt.links.new(mx.outputs['Result'], b.inputs['Base Color'])
+            # mer kontrast: de grå ränderna blir ljusare, det svarta förblir nästan svart
+            k = 1 + 0.8 * styrka; vm = nt.nodes.new('ShaderNodeVectorMath'); vm.operation = 'MULTIPLY_ADD'  # linjära värden: svart ~0.003, rand ~0.02
+            vm.inputs[1].default_value = (k, k, k); vm.inputs[2].default_value = (0.002,) * 3
+            mx = nt.nodes.new('ShaderNodeVectorMath'); mx.operation = 'MAXIMUM'; mx.inputs[1].default_value = (0.0, 0.0, 0.0)
+            nt.links.new(tex[0].outputs['Color'], vm.inputs[0]); nt.links.new(vm.outputs['Vector'], mx.inputs[0]); nt.links.new(mx.outputs['Vector'], b.inputs['Base Color'])
 
 def skala_uv(k):
     # ändrar storleken på vävmönstret (k > 1 = mindre/tätare mönster)
