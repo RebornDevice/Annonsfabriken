@@ -71,10 +71,13 @@ def fixa_kamera(glans=1.0):
         b = m.node_tree.nodes.get('Principled BSDF')
         if not b: continue
         n = m.name.lower()
-        if 'titanium' in n:   # bara kameraramen och knapparna
-            b.inputs['Base Color'].default_value = (0.6, 0.61, 0.63, 1); b.inputs['Metallic'].default_value = 0.6
-            b.inputs['Roughness'].default_value = 0.32
-    if glans <= 0: return
+        if 'titanium' in n and 'inside' not in n:   # bara kameraramen och knapparna: satinerad aluminium med skiftande glans
+            nt = m.node_tree; lw = nt.nodes.new('ShaderNodeLayerWeight'); lw.inputs['Blend'].default_value = 0.35
+            rmp = nt.nodes.new('ShaderNodeValToRGB'); rmp.color_ramp.elements[0].color = (0.75, 0.76, 0.78, 1); rmp.color_ramp.elements[1].color = (0.16, 0.165, 0.17, 1)
+            nt.links.new(lw.outputs['Facing'], rmp.inputs['Fac']); nt.links.new(rmp.outputs['Color'], b.inputs['Base Color'])
+            b.inputs['Metallic'].default_value = 0.5; b.inputs['Roughness'].default_value = 0.16
+    if glans < 0: return   # bara ramen/knapparna ändras, inga extra reflexer
+    if glans == 0: return
     # reflexer: världen syns ljusare bara i speglingar (påverkar inte hur ljus skalet blir)
     w = bpy.context.scene.world
     if not w:
@@ -89,6 +92,25 @@ def fixa_kamera(glans=1.0):
     else:
         bg0 = nt.nodes.new('ShaderNodeBackground'); bg0.inputs['Strength'].default_value = 0; nt.links.new(bg0.outputs[0], mix.inputs[1])
     nt.links.new(bg2.outputs[0], mix.inputs[2]); nt.links.new(mix.outputs[0], out.inputs['Surface'])
+
+def metall_reflexer(styrka=1.0):
+    for m in bpy.data.materials:
+        if m.use_nodes and 'titanium' in m.name.lower():
+            bb = m.node_tree.nodes['Principled BSDF']
+            if 'inside' in m.name.lower():   # plattan inuti ramen ska vara mörk som på riktiga telefonen
+                bb.inputs['Base Color'].default_value = (0.025, 0.025, 0.027, 1); bb.inputs['Metallic'].default_value = 0.0
+                bb.inputs['Roughness'].default_value = 0.6; bb.inputs['Specular IOR Level'].default_value = 0.0; continue
+            bb.inputs['Base Color'].default_value = (0.8, 0.81, 0.83, 1); bb.inputs['Metallic'].default_value = 1.0
+            bb.inputs['Roughness'].default_value = 0.22
+    kol = bpy.data.collections.new('metall'); bpy.context.scene.collection.children.link(kol)
+    for o in bpy.data.objects:
+        if o.type == 'MESH' and 'lip' not in o.name.lower() and any(mm and 'titanium' in mm.name.lower() for mm in o.data.materials): kol.objects.link(o)
+    cam = bpy.context.scene.camera.location
+    for namn, loc, e, sx, sy in [('list_bak', (cam.x + 0.02, 0.28, 0.2), 6, 0.6, 0.06), ('list_fram', (cam.x, cam.y - 0.2, 0.25), 3, 0.5, 0.08),
+                                 ('list_sida', (0.45, -0.05, 0.12), 3, 0.08, 0.4)]:
+        l = bpy.data.lights.new(namn, 'AREA'); l.shape = 'RECTANGLE'; l.size = sx; l.size_y = sy; l.energy = e * styrka * LJUSFAKTOR * 10
+        o = bpy.data.objects.new(namn, l); bpy.context.scene.collection.objects.link(o); o.location = loc; look(o, (0.05, 0, 0.005))
+        o.light_linking.receiver_collection = kol
 
 def lada(namn, loc, storlek, farg, rough=0.8):
     bpy.ops.mesh.primitive_cube_add(size=1, location=loc); o = bpy.context.object; o.name = namn; o.scale = storlek
