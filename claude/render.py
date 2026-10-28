@@ -237,6 +237,37 @@ def peel_podium(glbs, W, H):  # ref 56: står upp, 3/4-vinkel, sett lite underif
     miljoljus(0.15)
 
 @shot
+def peel2(glbs, W, H):  # ref 56 v2: står på stort podium, baksida + höger sida, till höger i bild, lite underifrån
+    P = {'rotz': -28, 'tilt': 0, 'cam': [0.0, -0.478, 0.03], 'tgt': [-0.046, 0, 0.1375], 'lens': 50,
+         'pod_r': 0.09, 'nyckel': 14, 'kant': 18, 'fyll': 5, 'monster': 3.6, 'uv': 1.15, 'kamera': -1}
+    P.update(json.loads(os.environ.get('SHOT', '{}')))
+    importera(glbs[0], loc=(0, 0, 0.0827), rot=(90 + P['tilt'], 0, P['rotz']))
+    if P.get('monster'): visa_monster(P['monster'])
+    if P.get('uv'): skala_uv(P['uv'])
+    kamera(tuple(P['cam']), tuple(P['tgt']), P['lens'], W, H)
+    ljus('nyckel', (-0.3, -0.35, 0.35), (0, 0, 0.08), P['nyckel'], 1.0)
+    ljus('kant', (0.3, 0.15, 0.25), (0, 0, 0.08), P['kant'], 0.4)
+    ljus('fyll', (0.1, -0.4, 0.05), (0, 0, 0.08), P['fyll'], 1.2)
+    if P.get('plommon'): ljus('plommon', (-0.35, -0.1, 0.15), (0, 0, 0.1), P['plommon'], 1.5, (1.0, 0.35, 0.55))
+    if P.get('lins'):   # liten ljuskälla som speglas i kameraglaset och linserna
+        for m in bpy.data.materials:
+            if m.use_nodes and m.name.lower().startswith('base_cam_lens') and 'outer' not in m.name.lower():
+                bb = m.node_tree.nodes['Principled BSDF']; bb.inputs['Roughness'].default_value = 0.08; bb.inputs['Coat Weight'].default_value = 1.0
+        ljus('lins', tuple(P.get('lins_pos', (-0.15, -0.35, 0.35))), (-0.01, 0, 0.14), P['lins'], 0.15)
+    pod = cylinder('podium', (0, 0.02, -0.15), P['pod_r'], 0.3, tuple(P.get('pod_farg', (0.09, 0.025, 0.05))), P.get('pod_rough', 0.3))
+    pb = pod.data.materials[0].node_tree.nodes['Principled BSDF']; pb.inputs['Metallic'].default_value = P.get('pod_metal', 0.7)
+    bv = pod.modifiers.new('bevel', 'BEVEL'); bv.width = 0.003; bv.segments = 6
+    ljus('podkant', (0.0, 0.35, 0.06), (0, 0.02, 0), P.get('podljus', 6), 0.8)
+    if PROXY:
+        lada('vagg', (0, 0.6, 0.2), (3, 0.02, 2), (0.12, 0.03, 0.06), 0.7)
+        ljus('vagg', (0, 0.2, 0.5), (0, 0.6, 0.2), 60, 2.0)
+        miljoljus(0.05)
+        if P.get('kamera'): fixa_kamera(P['kamera'])
+        return False
+    miljoljus(0.04)
+    if P.get('kamera'): fixa_kamera(P['kamera'])
+
+@shot
 def bullstrap_stand(glbs, W, H):  # ref 18: står upp, baksidan mot kameran, nära, något vriden
     importera(glbs[0], loc=(0, 0, 0.0827), rot=(90, 0, 15))
     if PROXY:
