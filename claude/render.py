@@ -71,7 +71,7 @@ def fixa_kamera(glans=1.0):
         b = m.node_tree.nodes.get('Principled BSDF')
         if not b: continue
         n = m.name.lower()
-        if 'titanium' in n and 'inside' not in n:   # bara kameraramen och knapparna: satinerad aluminium med skiftande glans
+        if 'titanium' in n and 'inside' not in n and not m.get('knapp'):   # bara kameraramen och knapparna: satinerad aluminium med skiftande glans
             nt = m.node_tree; lw = nt.nodes.new('ShaderNodeLayerWeight'); lw.inputs['Blend'].default_value = 0.35
             rmp = nt.nodes.new('ShaderNodeValToRGB'); rmp.color_ramp.elements[0].color = (0.75, 0.76, 0.78, 1); rmp.color_ramp.elements[1].color = (0.16, 0.165, 0.17, 1)
             nt.links.new(lw.outputs['Facing'], rmp.inputs['Fac']); nt.links.new(rmp.outputs['Color'], b.inputs['Base Color'])
@@ -111,6 +111,37 @@ def metall_reflexer(styrka=1.0):
         l = bpy.data.lights.new(namn, 'AREA'); l.shape = 'RECTANGLE'; l.size = sx; l.size_y = sy; l.energy = e * styrka * LJUSFAKTOR * 10
         o = bpy.data.objects.new(namn, l); bpy.context.scene.collection.objects.link(o); o.location = loc; look(o, (0.05, 0, 0.005))
         o.light_linking.receiver_collection = kol
+
+def realistiska_linser(s=1.0):
+    for m in bpy.data.materials:
+        if not m.use_nodes: continue
+        b = m.node_tree.nodes.get('Principled BSDF'); n = m.name.lower()
+        if not b: continue
+        if n.startswith('base_cam_lens') and 'outer' not in n:   # glas med blålila antireflex
+            b.inputs['Base Color'].default_value = (0.01, 0.015, 0.04, 1); b.inputs['Roughness'].default_value = 0.03
+            b.inputs['Coat Weight'].default_value = 1.0; b.inputs['Coat Tint'].default_value = (0.55, 0.6, 1.0, 1)
+            b.inputs['Specular IOR Level'].default_value = 0.8 * s
+        if 'lens_outer' in n:   # metallringen runt varje lins
+            b.inputs['Base Color'].default_value = (0.35, 0.35, 0.37, 1); b.inputs['Metallic'].default_value = 1.0
+            b.inputs['Roughness'].default_value = 0.22
+        if n == 'base_glass':
+            b.inputs['Roughness'].default_value = 0.04; b.inputs['Specular IOR Level'].default_value = 0.6
+
+def reflex_miljo(styrka, farg):
+    # Omgivning som bara syns i speglingar: plommonfärgad studio med två ljusa lister (ger realistiska reflexer)
+    w = bpy.context.scene.world; nt = w.node_tree; out = nt.nodes['World Output']
+    gammal = out.inputs['Surface'].links[0].from_socket
+    lp = nt.nodes.new('ShaderNodeLightPath'); tc = nt.nodes.new('ShaderNodeTexCoord'); sep = nt.nodes.new('ShaderNodeSeparateXYZ')
+    nt.links.new(tc.outputs['Generated'], sep.inputs[0])
+    rz = nt.nodes.new('ShaderNodeValToRGB'); r = rz.color_ramp
+    r.elements[0].position = 0.0; r.elements[0].color = (*[c * 0.15 for c in farg], 1)
+    r.elements[1].position = 1.0; r.elements[1].color = (*[c * 0.6 for c in farg], 1)
+    for pos, v in ((0.55, 0.15), (0.6, 2.5), (0.65, 0.15), (0.78, 0.2), (0.82, 1.5), (0.86, 0.2)):
+        e = r.elements.new(pos); e.color = (*[min(1, c * v + (0.3 * v if v > 1 else 0)) for c in farg], 1)
+    nt.links.new(sep.outputs['Z'], rz.inputs['Fac'])
+    bg = nt.nodes.new('ShaderNodeBackground'); bg.inputs['Strength'].default_value = styrka; nt.links.new(rz.outputs['Color'], bg.inputs['Color'])
+    mix = nt.nodes.new('ShaderNodeMixShader'); nt.links.new(lp.outputs['Is Glossy Ray'], mix.inputs['Fac'])
+    nt.links.new(gammal, mix.inputs[1]); nt.links.new(bg.outputs[0], mix.inputs[2]); nt.links.new(mix.outputs[0], out.inputs['Surface'])
 
 def lada(namn, loc, storlek, farg, rough=0.8):
     bpy.ops.mesh.primitive_cube_add(size=1, location=loc); o = bpy.context.object; o.name = namn; o.scale = storlek
@@ -241,10 +272,13 @@ def peel2(glbs, W, H):  # ref 56 v2: står på stort podium, baksida + höger si
     P = {'rotz': -28, 'tilt': 0, 'cam': [0.0, -0.478, 0.03], 'tgt': [-0.046, 0, 0.1375], 'lens': 50,
          'pod_r': 0.09, 'nyckel': 14, 'kant': 18, 'fyll': 5, 'monster': 3.6, 'uv': 1.15, 'kamera': -1}
     P.update(json.loads(os.environ.get('SHOT', '{}')))
-    importera(glbs[0], loc=(0, 0, 0.0827), rot=(90 + P['tilt'], 0, P['rotz']))
+    rot = importera(glbs[0], loc=(0, 0, 0.0827), rot=(90 + P['tilt'], P.get('luta', 0), P['rotz']))
+    bpy.context.view_layer.update()
+    zmin = min((o.matrix_world @ v.co).z for o in bpy.data.objects if o.type == 'MESH' and o.name == 'Case' for v in o.data.vertices)
+    rot.location.z -= zmin   # står precis på podiet även när den lutar
     if P.get('monster'): visa_monster(P['monster'])
     if P.get('uv'): skala_uv(P['uv'])
-    kamera(tuple(P['cam']), tuple(P['tgt']), P['lens'], W, H)
+    kamera(tuple(P['cam']), tuple(P['tgt']), P['lens'], W, H, P.get('roll', 0))
     ljus('nyckel', (-0.3, -0.35, 0.35), (0, 0, 0.08), P['nyckel'], 1.0)
     ljus('kant', (0.3, 0.15, 0.25), (0, 0, 0.08), P['kant'], 0.4)
     ljus('fyll', (0.1, -0.4, 0.05), (0, 0, 0.08), P['fyll'], 1.2)
@@ -254,6 +288,20 @@ def peel2(glbs, W, H):  # ref 56 v2: står på stort podium, baksida + höger si
             if m.use_nodes and m.name.lower().startswith('base_cam_lens') and 'outer' not in m.name.lower():
                 bb = m.node_tree.nodes['Principled BSDF']; bb.inputs['Roughness'].default_value = 0.08; bb.inputs['Coat Weight'].default_value = 1.0
         ljus('lins', tuple(P.get('lins_pos', (-0.15, -0.35, 0.35))), (-0.01, 0, 0.14), P['lins'], 0.15)
+    if P.get('linser'): realistiska_linser(P['linser'])
+    if P.get('knapp'):   # knapparna lite mörkare än ramen
+        for o in bpy.data.objects:
+            if o.type == 'MESH' and o.name.startswith('Button'):
+                for i, mm in enumerate(o.data.materials):
+                    if mm and 'titanium' in mm.name.lower():
+                        k = mm.copy(); k['knapp'] = 1; o.data.materials[i] = k
+                        b2 = k.node_tree.nodes['Principled BSDF']; b2.inputs['Base Color'].links and k.node_tree.links.remove(b2.inputs['Base Color'].links[0])
+                        b2.inputs['Base Color'].default_value = (P['knapp'],) * 3 + (1,)
+    if P.get('sheen'):   # mjuk glans i vävens fibrer, som på riktiga foton
+        for m in bpy.data.materials:
+            if m.use_nodes and 'aramid' in m.name.lower():
+                bb = m.node_tree.nodes['Principled BSDF']; bb.inputs['Sheen Weight'].default_value = P['sheen']
+                bb.inputs['Sheen Roughness'].default_value = 0.4; bb.inputs['Sheen Tint'].default_value = (1, 0.85, 0.9, 1)
     pod = cylinder('podium', (0, 0.02, -0.15), P['pod_r'], 0.3, tuple(P.get('pod_farg', (0.09, 0.025, 0.05))), P.get('pod_rough', 0.3))
     pb = pod.data.materials[0].node_tree.nodes['Principled BSDF']; pb.inputs['Metallic'].default_value = P.get('pod_metal', 0.7)
     bv = pod.modifiers.new('bevel', 'BEVEL'); bv.width = 0.003; bv.segments = 6
@@ -266,6 +314,7 @@ def peel2(glbs, W, H):  # ref 56 v2: står på stort podium, baksida + höger si
         return False
     miljoljus(0.04)
     if P.get('kamera'): fixa_kamera(P['kamera'])
+    if P.get('reflex'): reflex_miljo(P['reflex'], tuple(P.get('reflex_farg', (0.55, 0.2, 0.32))))
 
 @shot
 def bullstrap_stand(glbs, W, H):  # ref 18: står upp, baksidan mot kameran, nära, något vriden
