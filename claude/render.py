@@ -64,6 +64,32 @@ def skala_uv(k):
         for n in nt.nodes:
             if n.type == 'TEX_IMAGE': nt.links.new(mp.outputs['Vector'], n.inputs['Vector'])
 
+def fixa_kamera(glans=1.0):
+    # Ljus silverram och blanka linser som på riktiga foton
+    for m in bpy.data.materials:
+        if not m.use_nodes: continue
+        b = m.node_tree.nodes.get('Principled BSDF')
+        if not b: continue
+        n = m.name.lower()
+        if 'titanium' in n:   # bara kameraramen och knapparna
+            b.inputs['Base Color'].default_value = (0.6, 0.61, 0.63, 1); b.inputs['Metallic'].default_value = 0.6
+            b.inputs['Roughness'].default_value = 0.32
+    if glans <= 0: return
+    # reflexer: världen syns ljusare bara i speglingar (påverkar inte hur ljus skalet blir)
+    w = bpy.context.scene.world
+    if not w:
+        w = bpy.data.worlds.new('w'); bpy.context.scene.world = w; w.use_nodes = True
+    nt = w.node_tree; out = nt.nodes['World Output']; gammal = out.inputs['Surface'].links[0].from_socket if out.inputs['Surface'].links else None
+    lp = nt.nodes.new('ShaderNodeLightPath'); bg2 = nt.nodes.new('ShaderNodeBackground'); bg2.inputs['Strength'].default_value = glans
+    tc = nt.nodes.new('ShaderNodeTexCoord'); sep = nt.nodes.new('ShaderNodeSeparateXYZ'); mr = nt.nodes.new('ShaderNodeMapRange')
+    mr.inputs['From Min'].default_value = -0.2; mr.inputs['From Max'].default_value = 1.0
+    nt.links.new(tc.outputs['Generated'], sep.inputs[0]); nt.links.new(sep.outputs['Z'], mr.inputs['Value']); nt.links.new(mr.outputs['Result'], bg2.inputs['Color'])
+    mix = nt.nodes.new('ShaderNodeMixShader'); nt.links.new(lp.outputs['Is Glossy Ray'], mix.inputs['Fac'])
+    if gammal: nt.links.new(gammal, mix.inputs[1])
+    else:
+        bg0 = nt.nodes.new('ShaderNodeBackground'); bg0.inputs['Strength'].default_value = 0; nt.links.new(bg0.outputs[0], mix.inputs[1])
+    nt.links.new(bg2.outputs[0], mix.inputs[2]); nt.links.new(mix.outputs[0], out.inputs['Surface'])
+
 def lada(namn, loc, storlek, farg, rough=0.8):
     bpy.ops.mesh.primitive_cube_add(size=1, location=loc); o = bpy.context.object; o.name = namn; o.scale = storlek
     m = bpy.data.materials.new(namn); m.use_nodes = True; b = m.node_tree.nodes['Principled BSDF']
@@ -133,8 +159,11 @@ def nudient_slice2(glbs, W, H):  # ref 6 v2: stort stenblock, låg kamera, mjukt
     ljus('fyll', (-0.25, -0.35, 0.15), (0.05, 0, 0), P['fyll'], 1.5)
     if PROXY:
         b = P['block']; lada('block', (b[0], b[1], b[2]), (b[3], b[4], b[5]), (0.12, 0.12, 0.125), 0.9)
-        bakgrund((0.012, 0.012, 0.014), (0.03, 0.03, 0.034)); return False
+        bakgrund((0.012, 0.012, 0.014), (0.03, 0.03, 0.034))
+        if P.get('kamera'): fixa_kamera(P['kamera'])
+        return False
     miljoljus(0.04)
+    if P.get('kamera'): fixa_kamera(P['kamera'])
 
 @shot
 def topp_test(glbs, W, H):  # ovanifrån som användarens foto, för att jämföra mönstret
@@ -144,7 +173,9 @@ def topp_test(glbs, W, H):  # ovanifrån som användarens foto, för att jämfö
     if P.get('uv'): skala_uv(P['uv'])
     kamera(tuple(P.get('cam', (0.0, -0.05, 0.42))), tuple(P.get('tgt', (0, 0.0, 0))), P.get('lens', 50), W, H)
     ljus('topp', (0.0, 0.3, 0.6), (0, 0, 0), 25, 1.0); ljus('fyll', (0, -0.3, 0.5), (0, 0, 0), 6, 1.2)
-    golv(0, catcher=False, farg=(0.04, 0.04, 0.045)); miljoljus(0.05); return False
+    golv(0, catcher=False, farg=(0.04, 0.04, 0.045)); miljoljus(0.05)
+    if P.get('kamera'): fixa_kamera(P['kamera'])
+    return False
 
 @shot
 def mous_side(glbs, W, H):  # ref 13: två telefoner stående, sidan mot kameran
