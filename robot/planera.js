@@ -12,6 +12,15 @@ const annonsstil = 'Premium product photography like high-end phone case brands:
 const set = $('Inställningar').first().json;
 const filer = $('Hitta robotfiler').all().map(i => i.json);
 const id = {}; for (const f of filer) id[f.name] = f.id;
+// Jobbläge: exakta Blender-renderingar (X_bild/X_mask/X_topp) med egen scenbeskrivning per jobb
+if (String(set.jobb || '').trim()) {
+  const jobb = JSON.parse(set.jobb); const st = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '');
+  return jobb.map(j => ({ json: { typ: 'X', namn: `ai-X-${j.k}-${st}.png`,
+    prompt: `${annonsstil}\nThe image contains a photorealistic phone in a phone case. Keep the phone and case exactly as they are: do not change shape, color, texture, logo, buttons, camera, position, size or angle. Only create the surroundings in the transparent areas.\nScene: ${j.scen}\nMatch the existing camera angle, lens and perspective exactly, with realistic contact shadows and reflections.\nIMPORTANT: no text, letters, numbers, logos or watermarks anywhere. Do not add other phones or products.`,
+    modell: set.modell, kvalitet: j.kvalitet || set.kvalitet, storlek: j.storlek || '1008x1792',
+    ids: { bild: id[`X_bild_${j.k}.png`], mask: id[`X_mask_${j.k}.png`], topp: id[`X_topp_${j.k}.png`] } } }))
+    .filter(i => i.json.ids.bild && i.json.ids.mask && i.json.ids.topp);
+}
 const textFor = (typ, k) => filer.find(f => f.name.startsWith(`R_${typ}_${k}`));
 const nycklar = [...new Set(filer.map(f => (f.name.match(/^A_bild_(s\d+)\.png$/) || [])[1]).filter(Boolean))]
   .filter(k => id[`A_mask_${k}.png`] && id[`A_topp_${k}.png`] && id[`C_bild_${k}.png`] && id[`C_mask_${k}.png`] && id[`C_topp_${k}.png`] && textFor('A', k) && textFor('C', k));
