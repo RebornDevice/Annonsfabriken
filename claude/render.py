@@ -53,6 +53,15 @@ def visa_monster(styrka=1.0):
             k = 1 + 0.8 * styrka; mx.inputs['B'].default_value = (k, k, k, 1)   # ljusare vävrutor, svarta förblir mörka
             nt.links.new(tex[0].outputs['Color'], mx.inputs['A']); nt.links.new(mx.outputs['Result'], b.inputs['Base Color'])
 
+def skala_uv(k):
+    # ändrar storleken på vävmönstret (k > 1 = mindre/tätare mönster)
+    for m in bpy.data.materials:
+        if not m.use_nodes or 'aramid' not in m.name.lower(): continue
+        nt = m.node_tree; tc = nt.nodes.new('ShaderNodeTexCoord'); mp = nt.nodes.new('ShaderNodeMapping')
+        mp.inputs['Scale'].default_value = (k, k, 1); nt.links.new(tc.outputs['UV'], mp.inputs['Vector'])
+        for n in nt.nodes:
+            if n.type == 'TEX_IMAGE': nt.links.new(mp.outputs['Vector'], n.inputs['Vector'])
+
 def lada(namn, loc, storlek, farg, rough=0.8):
     bpy.ops.mesh.primitive_cube_add(size=1, location=loc); o = bpy.context.object; o.name = namn; o.scale = storlek
     m = bpy.data.materials.new(namn); m.use_nodes = True; b = m.node_tree.nodes['Principled BSDF']
@@ -111,6 +120,7 @@ def nudient_slice2(glbs, W, H):  # ref 6 v2: stort stenblock, låg kamera, mjukt
     P.update(json.loads(os.environ.get('SHOT', '{}')))
     importera(glbs[0], loc=tuple(P['phone']), rot=(0, 0, 90))
     if P.get('monster'): visa_monster(P['monster'])
+    if P.get('uv'): skala_uv(P['uv'])
     kamera(tuple(P['cam']), tuple(P['tgt']), P['lens'], W, H)
     if P.get('glans'):  # mjuk ljuslåda bakom telefonen: speglas i ovansidan så att vävmönstret syns
         ljus('glans', (P['phone'][0], 0.30, 0.07), (P['phone'][0], 0, 0.008), P['glans'], 0.5)
@@ -123,6 +133,16 @@ def nudient_slice2(glbs, W, H):  # ref 6 v2: stort stenblock, låg kamera, mjukt
         b = P['block']; lada('block', (b[0], b[1], b[2]), (b[3], b[4], b[5]), (0.12, 0.12, 0.125), 0.9)
         bakgrund((0.012, 0.012, 0.014), (0.03, 0.03, 0.034)); return False
     miljoljus(0.04)
+
+@shot
+def topp_test(glbs, W, H):  # ovanifrån som användarens foto, för att jämföra mönstret
+    P = {'monster': 0}; P.update(json.loads(os.environ.get('SHOT', '{}')))
+    importera(glbs[0], loc=(0, 0, 0), rot=(0, 0, P.get('rotz', 0)))
+    if P.get('monster'): visa_monster(P['monster'])
+    if P.get('uv'): skala_uv(P['uv'])
+    kamera(tuple(P.get('cam', (0.0, -0.05, 0.42))), tuple(P.get('tgt', (0, 0.0, 0))), P.get('lens', 50), W, H)
+    ljus('topp', (0.0, 0.3, 0.6), (0, 0, 0), 25, 1.0); ljus('fyll', (0, -0.3, 0.5), (0, 0, 0), 6, 1.2)
+    golv(0, catcher=False, farg=(0.04, 0.04, 0.045)); miljoljus(0.05); return False
 
 @shot
 def mous_side(glbs, W, H):  # ref 13: två telefoner stående, sidan mot kameran
