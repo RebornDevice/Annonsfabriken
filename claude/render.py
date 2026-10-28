@@ -40,6 +40,19 @@ def golv(z=0, catcher=True, farg=(0.05, 0.05, 0.05)):
     m.node_tree.nodes['Principled BSDF'].inputs['Roughness'].default_value = 0.6
     p.data.materials.append(m); return p
 
+def visa_monster(styrka=1.0):
+    # Gör aramidvävens mönster tydligare: djupare struktur, lite blankare yta, mer kontrast i färgen
+    for m in bpy.data.materials:
+        if not m.use_nodes or 'aramid' not in m.name.lower(): continue
+        nt = m.node_tree; b = nt.nodes['Principled BSDF']
+        for n in nt.nodes:
+            if n.type == 'NORMAL_MAP': n.inputs['Strength'].default_value = 1.0 + 1.0 * styrka
+        tex = [n for n in nt.nodes if n.type == 'TEX_IMAGE' and b.inputs['Base Color'].links and b.inputs['Base Color'].links[0].from_node == n]
+        if tex:
+            mx = nt.nodes.new('ShaderNodeMix'); mx.data_type = 'RGBA'; mx.blend_type = 'MULTIPLY'; mx.inputs['Factor'].default_value = 1.0
+            k = 1 + 0.8 * styrka; mx.inputs['B'].default_value = (k, k, k, 1)   # ljusare vävrutor, svarta förblir mörka
+            nt.links.new(tex[0].outputs['Color'], mx.inputs['A']); nt.links.new(mx.outputs['Result'], b.inputs['Base Color'])
+
 def lada(namn, loc, storlek, farg, rough=0.8):
     bpy.ops.mesh.primitive_cube_add(size=1, location=loc); o = bpy.context.object; o.name = namn; o.scale = storlek
     m = bpy.data.materials.new(namn); m.use_nodes = True; b = m.node_tree.nodes['Principled BSDF']
@@ -90,6 +103,26 @@ def nudient_slice(glbs, W, H):  # ref 6: ligger platt på ett stenblock, låg ka
     kamera((0.02, -0.30, 0.12), (0.02, 0.0, 0.0), 58, W, H)
     ljus('topp', (0, 0.05, 0.5), (0, 0, 0), 60, 0.5); ljus('kant', (0.1, 0.4, 0.15), (0, 0, 0), 25, 0.3); ljus('fyll', (-0.3, -0.3, 0.2), (0, 0, 0), 6, 0.6)
     miljoljus(0.15)
+
+@shot
+def nudient_slice2(glbs, W, H):  # ref 6 v2: stort stenblock, låg kamera, mjukt ljus, telefonen stor och beskuren till höger
+    P = {'phone': [0.075, 0.0, 0.0], 'cam': [0.03, -0.24, 0.055], 'tgt': [0.045, 0.0, 0.004], 'lens': 52,
+         'block': [0.17, 0.19, -0.3, 0.5, 0.42, 0.6], 'topp': 6, 'kant': 10, 'fyll': 1.2}
+    P.update(json.loads(os.environ.get('SHOT', '{}')))
+    importera(glbs[0], loc=tuple(P['phone']), rot=(0, 0, 90))
+    if P.get('monster'): visa_monster(P['monster'])
+    kamera(tuple(P['cam']), tuple(P['tgt']), P['lens'], W, H)
+    if P.get('glans'):  # mjuk ljuslåda bakom telefonen: speglas i ovansidan så att vävmönstret syns
+        ljus('glans', (P['phone'][0], 0.30, 0.07), (P['phone'][0], 0, 0.008), P['glans'], 0.5)
+    # mjukt stort ljus ovanifrån-bakifrån (ger kantljus), svag fyllning framifrån
+    ljus('topp', tuple(P.get('topp_pos', (0.05, 0.25, 0.45))), (0.05, 0, 0), P['topp'], 1.2)
+    if P.get('rake'): ljus('rake', (-0.35, 0.0, 0.04), (0.08, 0, 0.005), P['rake'], 0.4)
+    ljus('kant', (0.35, 0.3, 0.12), (0.05, 0, 0), P['kant'], 0.6)
+    ljus('fyll', (-0.25, -0.35, 0.15), (0.05, 0, 0), P['fyll'], 1.5)
+    if PROXY:
+        b = P['block']; lada('block', (b[0], b[1], b[2]), (b[3], b[4], b[5]), (0.12, 0.12, 0.125), 0.9)
+        bakgrund((0.012, 0.012, 0.014), (0.03, 0.03, 0.034)); return False
+    miljoljus(0.04)
 
 @shot
 def mous_side(glbs, W, H):  # ref 13: två telefoner stående, sidan mot kameran
@@ -145,6 +178,7 @@ if __name__ == '__main__':
     a = [x for x in sys.argv[1:] if not x.startswith('--')]
     prev = '--preview' in sys.argv
     namn, ut, glbs = a[0], a[1], a[2:]
-    W, H = (270, 480) if prev else (1080, 1920)
+    mid = '--mid' in sys.argv
+    W, H = (270, 480) if prev else ((540, 960) if mid else (1080, 1920))
     nolla(); r = SHOTS[namn](glbs, W, H)
-    rendera(ut, transparent=(r is not False), samples=8 if prev else (16 if PROXY else 48))
+    rendera(ut, transparent=(r is not False), samples=8 if prev else (24 if mid else (16 if PROXY else 48)))
