@@ -118,7 +118,7 @@ def nudient_slice2(glbs, W, H):  # ref 6 v2: stort stenblock, låg kamera, mjukt
     P = {'phone': [0.075, 0.0, 0.0], 'cam': [0.03, -0.24, 0.055], 'tgt': [0.045, 0.0, 0.004], 'lens': 52,
          'block': [0.17, 0.19, -0.3, 0.5, 0.42, 0.6], 'topp': 6, 'kant': 10, 'fyll': 1.2}
     P.update(json.loads(os.environ.get('SHOT', '{}')))
-    importera(glbs[0], loc=tuple(P['phone']), rot=(0, 0, 90))
+    importera(glbs[0], loc=tuple(P['phone']), rot=(0, 0, P.get('rotz', 90)))
     if P.get('monster'): visa_monster(P['monster'])
     if P.get('uv'): skala_uv(P['uv'])
     kamera(tuple(P['cam']), tuple(P['tgt']), P['lens'], W, H)
