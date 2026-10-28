@@ -28,7 +28,7 @@ def kamera(loc, target, lens, W, H, roll=0):
     return o
 
 def ljus(namn, loc, target, energi, storlek, farg=(1, 1, 1)):
-    l = bpy.data.lights.new(namn, 'AREA'); l.energy = energi; l.size = storlek; l.color = farg
+    l = bpy.data.lights.new(namn, 'AREA'); l.energy = energi * LJUSFAKTOR; l.size = storlek; l.color = farg
     o = bpy.data.objects.new(namn, l); bpy.context.scene.collection.objects.link(o); o.location = loc; look(o, target)
 
 def golv(z=0, catcher=True, farg=(0.05, 0.05, 0.05)):
@@ -63,6 +63,7 @@ def rendera(ut, transparent=True, samples=64):
     s.render.filepath = ut; bpy.ops.render.render(write_still=True)
 
 L = 0.165  # telefonens längd (m)
+LJUSFAKTOR = 0.3
 SHOTS = {}
 def shot(f): SHOTS[f.__name__] = f; return f
 
@@ -76,11 +77,11 @@ def nudient_slice(glbs, W, H):  # ref 6: ligger platt på ett stenblock, låg ka
 
 @shot
 def mous_side(glbs, W, H):  # ref 13: två telefoner stående, sidan mot kameran
-    importera(glbs[0], loc=(-0.032, 0, 0.0), rot=(90, 0, -72))
-    importera(glbs[1] if len(glbs) > 1 else glbs[0], loc=(0.04, 0.03, 0.0), rot=(90, 0, -72))
-    kamera((0.0, -0.40, 0.07), (0.004, 0, 0.065), 70, W, H)
+    importera(glbs[0], loc=(-0.026, 0, 0.0), rot=(90, 0, -78))
+    importera(glbs[1] if len(glbs) > 1 else glbs[0], loc=(0.03, 0.03, 0.0), rot=(90, 0, -78))
+    kamera((0.0, -0.40, 0.06), (0.004, 0, 0.042), 85, W, H)
     ljus('kant_v', (-0.25, 0.25, 0.25), (0, 0, 0.08), 40, 0.4); ljus('kant_h', (0.25, 0.25, 0.25), (0, 0, 0.08), 40, 0.4)
-    ljus('fyll', (0, -0.4, 0.2), (0, 0, 0.08), 8, 1.0)
+    ljus('fyll', (-0.3, -0.3, -0.1), (0, 0, 0.05), 3, 1.0)
     bakgrund((0.035, 0.035, 0.038), (0.008, 0.008, 0.009)); return False
 
 @shot
@@ -102,7 +103,7 @@ def nudient_grus(glbs, W, H):  # ref 29: ligger platt diagonalt, sett snett ovan
 def peel_podium(glbs, W, H):  # ref 56: står upp, 3/4-vinkel, sett lite underifrån
     importera(glbs[0], loc=(0, 0, 0.0827), rot=(90, 0, 38))
     golv(0)
-    kamera((0.06, -0.40, 0.05), (-0.075, 0, 0.15), 50, W, H)
+    kamera((0.06, -0.40, 0.05), (-0.042, 0, 0.16), 50, W, H)
     ljus('kant', (0.25, 0.2, 0.3), (0, 0, 0.08), 35, 0.4); ljus('fyll', (-0.2, -0.3, 0.2), (0, 0, 0.08), 10, 0.8)
     miljoljus(0.15)
 
