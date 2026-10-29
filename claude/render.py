@@ -317,6 +317,54 @@ def peel2(glbs, W, H):  # ref 56 v2: står på stort podium, baksida + höger si
     if P.get('reflex'): reflex_miljo(P['reflex'], tuple(P.get('reflex_farg', (0.55, 0.2, 0.32))))
 
 @shot
+def peel_exakt(glbs, W, H):  # ref 56: kameravinkel uppmätt mot referensen (siluettanpassning, IoU 0.96)
+    P = {'az': 26.39, 'el': -13.24, 'roll': 0.0, 'lens': 163.2, 'd': 1.5428, 'sx': -0.1338, 'sy': 0.1457, 'luta': 7.12, 'tipp': 0.0,
+         'pod_r': 0.16, 'nyckel': 7, 'kant': 22, 'fyll': 2, 'monster': 3.6, 'uv': 1.15, 'kamera': -1, 'linser': 1, 'reflex': 4,
+         'lins': 8, 'sheen': 0.5, 'knapp': 0.3, 'pod_farg': (0.035, 0.01, 0.02), 'podljus': 3, 'plommon': 6}
+    P.update(json.loads(os.environ.get('SHOT', '{}')))
+    rot = importera(glbs[0], loc=(0, 0, 0.0827), rot=(90 + P['tipp'], P['luta'], 0))
+    bpy.context.view_layer.update()
+    zmin = min((o.matrix_world @ v.co).z for o in bpy.data.objects if o.type == 'MESH' and o.name == 'Case' for v in o.data.vertices)
+    if P.get('monster'): visa_monster(P['monster'])
+    if P.get('uv'): skala_uv(P['uv'])
+    ctr = mathutils.Vector((0, 0, 0.0827)); az, el = math.radians(P['az']), math.radians(P['el'])
+    pos = ctr + P['d'] * mathutils.Vector((math.sin(az) * math.cos(el), -math.cos(az) * math.cos(el), math.sin(el)))
+    o = kamera(tuple(pos), tuple(ctr), P['lens'], W, H, P['roll'])
+    o.data.sensor_fit = 'VERTICAL'; o.data.sensor_height = 36; o.data.shift_x = P['sx']; o.data.shift_y = P['sy']
+    ljus('nyckel', (-0.3, -0.35, 0.35), (0, 0, 0.08), P['nyckel'], 1.0)
+    ljus('kant', (0.3, 0.15, 0.25), (0, 0, 0.08), P['kant'], 0.4)
+    ljus('fyll', (0.1, -0.4, 0.05), (0, 0, 0.08), P['fyll'], 1.2)
+    if P.get('plommon'): ljus('plommon', (-0.35, -0.1, 0.15), (0, 0, 0.1), P['plommon'], 1.5, (1.0, 0.35, 0.55))
+    if P.get('lins'):
+        for m in bpy.data.materials:
+            if m.use_nodes and m.name.lower().startswith('base_cam_lens') and 'outer' not in m.name.lower():
+                bb = m.node_tree.nodes['Principled BSDF']; bb.inputs['Roughness'].default_value = 0.08; bb.inputs['Coat Weight'].default_value = 1.0
+        ljus('lins', (pos.x * 0.3, pos.y * 0.3, 0.35), (0, 0, 0.14), P['lins'], 0.15)
+    if P.get('linser'): realistiska_linser(P['linser'])
+    if P.get('knapp'):
+        for ob in bpy.data.objects:
+            if ob.type == 'MESH' and ob.name.startswith('Button'):
+                for i, mm in enumerate(ob.data.materials):
+                    if mm and 'titanium' in mm.name.lower():
+                        k = mm.copy(); k['knapp'] = 1; ob.data.materials[i] = k
+                        b2 = k.node_tree.nodes['Principled BSDF']; b2.inputs['Base Color'].links and k.node_tree.links.remove(b2.inputs['Base Color'].links[0])
+                        b2.inputs['Base Color'].default_value = (P['knapp'],) * 3 + (1,)
+    if P.get('sheen'):
+        for m in bpy.data.materials:
+            if m.use_nodes and 'aramid' in m.name.lower():
+                bb = m.node_tree.nodes['Principled BSDF']; bb.inputs['Sheen Weight'].default_value = P['sheen']
+                bb.inputs['Sheen Roughness'].default_value = 0.4; bb.inputs['Sheen Tint'].default_value = (1, 0.85, 0.9, 1)
+    fram = mathutils.Vector((-pos.x, -pos.y, 0)).normalized()   # riktning från kameran mot telefonen (vågrätt)
+    pc = fram * (P['pod_r'] - P.get('pod_marg', 0.012))           # telefonen står nära podiets främre kant
+    pod = cylinder('podium', (pc.x, pc.y, zmin - 0.15), P['pod_r'], 0.3, tuple(P['pod_farg']), P.get('pod_rough', 0.3))
+    pb = pod.data.materials[0].node_tree.nodes['Principled BSDF']; pb.inputs['Metallic'].default_value = P.get('pod_metal', 0.7)
+    bv = pod.modifiers.new('bevel', 'BEVEL'); bv.width = 0.003; bv.segments = 6
+    ljus('podkant', (pc.x, pc.y + 0.4, zmin + 0.08), (pc.x, pc.y, zmin), P['podljus'], 0.8)
+    miljoljus(0.04)
+    if P.get('kamera'): fixa_kamera(P['kamera'])
+    if P.get('reflex'): reflex_miljo(P['reflex'], (0.55, 0.2, 0.32))
+
+@shot
 def bullstrap_stand(glbs, W, H):  # ref 18: står upp, baksidan mot kameran, nära, något vriden
     importera(glbs[0], loc=(0, 0, 0.0827), rot=(90, 0, 15))
     if PROXY:
