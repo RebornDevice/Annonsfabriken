@@ -196,6 +196,30 @@ def r40():  # ref 5, annan färgordning + text
     D.text('Underrad', ['1 mm thin · 37 N52 magnets · MagSafe'], 'Jost-Regular', 32, W / 2, H * .266, alpha=240)
     return D, 5, '40-variant-tre-skal'
 
+def r41():  # ref 53, ljus studio, blått skal + sten
+    bg = bg_fit(src('r53mac').convert('RGB'), 1080, 1920); D = d.Design(bg, 'L'); W, H = D.W, D.H
+    D.ink = (20, 20, 22)
+    D.text('Rubrik', ['Thin enough to forget,', 'strong enough to snap on.'], 'Jost-Regular', 76, W / 2, H * .125, radavst=1.15)
+    D.text('Fakta', ['1 mm thin   •   37 N52 magnets   •   MagSafe & Qi2'], 'Jost-Regular', 38, W / 2, H * .79)
+    D.logo(230, W / 2, H * .885)
+    return D, 53, '41-studio-ljus-bla'
+
+def r42():  # ref 53, svart skal
+    bg = bg_fit(src('r53macB').convert('RGB'), 1080, 1920); D = d.Design(bg, 'L'); W, H = D.W, D.H
+    D.ink = (20, 20, 22)
+    D.text('Rubrik', ['All black.', 'Just 1 mm thin.'], 'Jost-Regular', 76, W / 2, H * .125, radavst=1.15)
+    D.text('Fakta', ['RD Case V4   •   37 N52 magnets   •   MagSafe & Qi2'], 'Jost-Regular', 38, W / 2, H * .79)
+    D.logo(230, W / 2, H * .885)
+    return D, 53, '42-variant-studio-svart'
+
+def r43():  # ref 53, vitt skal
+    bg = bg_fit(src('r53macW').convert('RGB'), 1080, 1920); D = d.Design(bg, 'L'); W, H = D.W, D.H
+    D.ink = (20, 20, 22)
+    D.text('Rubrik', ['Clean white.', 'Snaps on with MagSafe.'], 'Jost-Regular', 76, W / 2, H * .125, radavst=1.15)
+    D.text('Fakta', ['1 mm thin   •   37 N52 magnets   •   Qi2 ready'], 'Jost-Regular', 38, W / 2, H * .79)
+    D.logo(230, W / 2, H * .885)
+    return D, 53, '43-variant-studio-vit'
+
 # ---- NYA ANNONSER LÄGGS IN OVANFÖR DENNA RAD ----
 if __name__ == '__main__':
     for a in sys.argv[1:]:

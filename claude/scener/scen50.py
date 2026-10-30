@@ -28,4 +28,6 @@ if DEL == 'bg':
 else:
     farg, p = P[DEL]
     r = L['star'](farg, p, W, H, ljus=[('fyll', (0.2, 0.1, 0.6), 2.0, 1.5)], amb=0.0)
+    if DEL == '50_1':  # liggande: golvet är skärmens plan
+        g = bpy.data.objects['golv']; g.location = (0, 0, -0.0003); g.rotation_euler = (0, 0, 0)
     sol()
