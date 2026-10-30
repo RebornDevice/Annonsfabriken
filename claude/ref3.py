@@ -328,6 +328,14 @@ def r55():  # ref 37, variant: svart främst, varm sand
     hoger(D, 'MagSafe & Qi2.', 'Poppins-Regular', 36, W - m, H * .954, namn='Underrad 2')
     return D, 37, '55-variant-ovanifran-sand'
 
+def r56():  # ref 4, tre skal på skrynkligt vitt lakan
+    bg = bg_fit(src('r4mac').convert('RGB'), 1080, 1350); D = d.Design(bg, 'L'); W, H = D.W, D.H
+    D.ink = (34, 32, 30)
+    D.text('Rubrik', ['Three colors.', 'One 1 mm feel.'], 'PlayfairDisplay-Regular', 64, W / 2, H * .085, radavst=1.15)
+    D.text('Underrad', ['37 N52 magnets  |  MagSafe  |  Qi2'], 'Poppins-Regular', 30, W / 2, H * .225)
+    D.logo(190, W * .17, H * .93)
+    return D, 4, '56-tre-skal-lakan'
+
 # ---- NYA ANNONSER LÄGGS IN OVANFÖR DENNA RAD ----
 if __name__ == '__main__':
     for a in sys.argv[1:]:

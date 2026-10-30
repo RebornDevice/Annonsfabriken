@@ -24,14 +24,16 @@ if globals().get('TYG'):  # bakgrund: mjukt skrynkligt vitt tyg (lakan), utan te
     for o in list(bpy.data.objects):
         if o.type == 'MESH': bpy.data.objects.remove(o, do_unlink=True)
     bpy.ops.mesh.primitive_plane_add(size=1.2); t = bpy.context.object; t.parent = r; t.location = (0, 0, -0.004)
-    bpy.ops.object.modifier_add(type='SUBSURF'); t.modifiers[-1].levels = 6; t.modifiers[-1].render_levels = 6; t.modifiers[-1].subdivision_type = 'SIMPLE'
-    for sk, st, nm in [(0.07, 0.045, 'stor'), (0.025, 0.01, 'liten')]:
+    bpy.ops.object.modifier_add(type='SUBSURF'); t.modifiers[-1].levels = 7; t.modifiers[-1].render_levels = 7; t.modifiers[-1].subdivision_type = 'SIMPLE'
+    tw = bpy.data.textures.new('veck', 'WOOD'); tw.wood_type = 'BANDNOISE'; tw.noise_basis_2 = 'SIN'; tw.turbulence = 9; tw.noise_scale = 0.09
+    d = t.modifiers.new('veck', 'DISPLACE'); d.texture = tw; d.strength = globals().get('VECK', 0.03); d.mid_level = 0.5
+    for sk, st, nm in [(0.07, 0.02, 'stor'), (0.025, 0.006, 'liten')]:
         tx = bpy.data.textures.new(nm, 'CLOUDS'); tx.noise_scale = sk; tx.noise_depth = 2
         d = t.modifiers.new(nm, 'DISPLACE'); d.texture = tx; d.strength = st; d.mid_level = 0.5
     bpy.ops.object.shade_smooth()
-    m = L['mat_enkel']((0.8, 0.79, 0.77), 0.95); t.data.materials.append(m)
+    m = L['mat_enkel']((0.9, 0.89, 0.87), 0.95); t.data.materials.append(m)
     for o in list(bpy.data.objects):
         if o.type == 'LIGHT': o.data.energy *= 0.35
-    sl = bpy.data.lights.new('fonster', 'SUN'); sl.energy = 3.2; sl.angle = math.radians(6)
+    sl = bpy.data.lights.new('fonster', 'SUN'); sl.energy = 4.5; sl.angle = math.radians(6)
     so = bpy.data.objects.new('fonster', sl); bpy.context.scene.collection.objects.link(so)
     so.rotation_euler = (R @ mathutils.Vector((-0.8, 0.5, -0.45))).to_track_quat('-Z', 'Y').to_euler()
