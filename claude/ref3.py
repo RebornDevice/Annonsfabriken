@@ -271,6 +271,15 @@ def r49():  # ref 50, blått + vitt skal, varm terrakotta
     D.logo(150, W - m - 150, H * .955, just='left')
     return D, 50, '49-variant-terrakotta-bla-vit'
 
+def r50():  # ref 42, fyra liggande skal i diagonal rad
+    bg = bg_fit(src('r42mac').convert('RGB'), 1080, 1350); D = d.Design(bg, 'L'); W, H = D.W, D.H
+    D.ink = (14, 14, 16)
+    D.text('Rubrik', ['RD CASE V4'], 'Inter-SemiBold', 104, W / 2, H * .175)
+    D.text('Underrad', ['for iPhone 18 Pro Max'], 'Inter-Regular', 44, W / 2, H * .25)
+    D.text('Fakta', ['1 mm thin  ·  37 N52 magnets  ·  MagSafe & Qi2'], 'Inter-Regular', 34, W / 2, H * .74, alpha=230)
+    D.logo(200, W / 2, H * .91)
+    return D, 42, '50-fyra-skal-liggande-rad'
+
 # ---- NYA ANNONSER LÄGGS IN OVANFÖR DENNA RAD ----
 if __name__ == '__main__':
     for a in sys.argv[1:]:
