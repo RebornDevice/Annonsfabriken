@@ -7,6 +7,7 @@ P = {'28_0': ('black', [3.528, 1.4218, 16.965, 77.2, -0.232488, 0.119291]),
      '28_2': ('black', [7.78, 4.4999, 25.558, 73.464, 0.121361, 0.092957]),
      '28_3': ('white', [3.125, 1.7799, 29.298, 72.027, 0.283015, 0.082828])}
 W = H = 1080
+for _k, _f in (globals().get('FARGER') or {}).items(): P[_k] = (_f, P[_k][1])
 def sol(r):
     s = bpy.data.lights.new('sol', 'SUN'); s.energy = 7.0; s.angle = math.radians(1.5); s.color = (1, 0.97, 0.93)
     o = bpy.data.objects.new('sol', s); bpy.context.scene.collection.objects.link(o)

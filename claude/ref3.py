@@ -96,6 +96,106 @@ def r27():
     D.text('Under', ['1 MM THIN IN DEEP BLUE'], 'Jost-Medium', 27, W * .5, H * .456, spärr=4, alpha=235)
     return D, 35, '27-svavar-klippa'
 
+# 28 Native Union "ReClassic" på plommonfärgat podium (ref 34)
+def r28():
+    bg = d.grade(bg_fit(src('r34mac').convert('RGB'), 1080, 1080)); D = d.Design(bg, 'D'); W, H = D.W, D.H
+    D.text('Rubrik', ['New iPhone 18 Pro Max'], 'Inter-Regular', 62, W / 2, H * .095)
+    D.text('Under', ['RD Case V4 + MagSafe'], 'Inter-SemiBold', 40, W / 2, H * .158, farg=(214, 140, 190))
+    D.logo(170, W / 2, H * .935)
+    return D, 34, '28-plommon-podium'
+
+# 29 Reklamskylt i stan (ref 40), 4:5
+def r29():
+    bg = d.grade(bg_fit(src('r40mac').convert('RGB'), 960, 1200)); D = d.Design(bg, 'L'); W, H = D.W, D.H; D.ink = (25, 28, 34)
+    D.text('Skylt', ['Just 1 mm thin.'], 'Inter-Medium', 40, W * .5, H * .13)
+    D.ink = (255, 255, 255)
+    D.text('Rubrik', ['RD CASE V4'], 'Oswald-SemiBold', 64, W * .5, H * .925, spärr=2)
+    D.text('Under', ['For iPhone 18 Pro Max'], 'Inter-Medium', 26, W * .5, H * .965, spärr=2)
+    return D, 40, '29-reklamskylt-stad'
+
+def r30():  # ref 40, svart skal
+    bg = d.grade(bg_fit(src('r40macB').convert('RGB'), 960, 1200)); D = d.Design(bg, 'L'); W, H = D.W, D.H; D.ink = (25, 28, 34)
+    D.text('Skylt', ['Barely there.'], 'Inter-Medium', 40, W * .5, H * .13)
+    D.ink = (255, 255, 255)
+    D.text('Rubrik', ['RD CASE V4'], 'Oswald-SemiBold', 64, W * .5, H * .925, spärr=2)
+    D.text('Under', ['1 mm thin · MagSafe'], 'Inter-Medium', 26, W * .5, H * .965, spärr=2)
+    return D, 40, '30-variant-skylt-svart'
+
+def r31():  # ref 35, svart skal
+    bg = d.grade(bg_fit(src('r35macB').convert('RGB'), 1080, 1920)); D = d.Design(bg, 'D'); W, H = D.W, D.H
+    D.logo(190, W * .5, H * .352)
+    D.text('Rubrik', ['NOTHING EXTRA.'], 'Jost-SemiBold', 78, W * .5, H * .418, spärr=2)
+    D.text('Under', ['1 MM THIN · 37 N52 MAGNETS'], 'Jost-Medium', 27, W * .5, H * .456, spärr=4, alpha=235)
+    return D, 35, '31-variant-klippa-svart'
+
+def r32():  # ref 54, vitt skal
+    bg = d.grade(bg_fit(src('r54macW').convert('RGB'), 1080, 1920)); D = d.Design(bg, 'D'); W, H = D.W, D.H
+    D.text('Rubrik', ['SIMPLY.', 'THIN.'], 'Jost-Medium', 56, W * .5, H * .158, spärr=8, radavst=1.18)
+    D.text('Under', ['37 N52 magnets · MagSafe & Qi2'], 'Jost-Regular', 27, W * .5, H * .226, alpha=235)
+    D.logo(150, W / 2, H * .94)
+    return D, 54, '32-variant-gras-vit'
+
+def r33():  # ref 28, andra färger + annan text
+    bg = d.grade(bg_fit(src('r28macB').convert('RGB'), 1080, 1080)); D = d.Design(bg, 'D'); W, H = D.W, D.H
+    D.text('Rubrik', ['1 MM THIN'], 'Oswald-SemiBold', 108, W / 2, H * .175, spärr=2)
+    D.text('Under', ['RD CASE V4 · 37 N52 MAGNETS'], 'Oswald-SemiBold', 34, W / 2, H * .228)
+    D.logo(200, W / 2, H * .905)
+    return D, 28, '33-variant-fyra-skal'
+
+def r34():  # ref 34, vitt skal
+    bg = d.grade(bg_fit(src('r34macW').convert('RGB'), 1080, 1080)); D = d.Design(bg, 'D'); W, H = D.W, D.H
+    D.text('Rubrik', ['Made for iPhone 18 Pro Max'], 'Inter-Regular', 56, W / 2, H * .095)
+    D.text('Under', ['RD Case V4 in Glacier White'], 'Inter-SemiBold', 38, W / 2, H * .158, farg=(214, 140, 190))
+    D.logo(170, W / 2, H * .935)
+    return D, 34, '34-variant-plommon-vit'
+
+def r35():  # ref 15, svart skal
+    bg = d.grade(bg_fit(src('r15macB').convert('RGB'), 1080, 1920)); D = d.Design(bg, 'D')
+    W, H = D.W, D.H; m = W * .087; y = H * .172
+    D.text('Rubrik', ['Built thin.'], 'Jost-Regular', 56, m, y, just='left')
+    D.text('Underrad', ['RD Case V4 in', 'Black'], 'Jost-Regular', 26, m, y + 48, just='left', radavst=1.3)
+    D.logo(175, W - m - 175, y - 26, just='left')
+    hoger(D, '1 mm · MagSafe', 'Jost-Regular', 26, W - m, y + 48, namn='Fakta')
+    return D, 15, '35-variant-lera-svart'
+
+# 36 "Most cases fade." stående + liggande skal på salviagrönt (ref 50)
+def r36():
+    bg = d.grade(bg_fit(src('r50mac').convert('RGB'), 1080, 1080)); D = d.Design(bg, 'L'); W, H = D.W, D.H; m = W * .045
+    D.ink = (30, 32, 30)
+    D.text('Rubrik 1', ['Most cases add bulk.'], 'PlayfairDisplay-Regular', 54, m, H * .093, just='left')
+    D.text('Rubrik 2', ["Ours doesn't."], 'PlayfairDisplay-Italic', 54, m, H * .15, just='left', farg=(96, 70, 48))
+    D.text('Modell', ['IPHONE 18 PRO MAX'], 'Inter-Regular', 30, m, H * .218, just='left', spärr=3)
+    D.text('Leverans', ['SHIPPING NOW'], 'Inter-Medium', 20, m, H * .26, just='left', spärr=5, farg=(110, 80, 55))
+    D.logo(150, W - m - 150, H * .955, just='left')
+    return D, 50, '36-staende-liggande-salvia'
+
+def r37():  # ref 10, blått skal
+    bg = d.grade(bg_fit(src('r10macU').convert('RGB'), 1080, 1920)); D = d.Design(bg, 'D'); W, H = D.W, D.H; m = W * .087; y = H * .178
+    D.text('Rubrik', ['Deep Blue.'], 'Jost-Regular', 56, m, y, just='left')
+    D.text('Underrad', ['RD Case V4', 'for iPhone 18 Pro Max'], 'Jost-Regular', 26, m, y + 48, just='left', radavst=1.3)
+    D.logo(175, W - m - 175, y - 26, just='left')
+    hoger(D, '37 N52 magnets', 'Jost-Regular', 26, W - m, y + 48, namn='Fakta')
+    return D, 10, '37-variant-sand-bla'
+
+def r38():  # ref 11, svart skal
+    bg = d.grade(bg_fit(src('r11macB').convert('RGB'), 1080, 1080)); D = d.Design(bg, 'D'); W, H = D.W, D.H
+    D.logo(150, W * .5, H * .955)
+    return D, 11, '38-variant-skrivbord-svart'
+
+def r39():  # ref 8, vitt skal
+    bg = d.grade(bg_fit(src('r8macW').convert('RGB'), 1080, 1920)); D = d.Design(bg, 'D'); W, H = D.W, D.H; m = W * .09
+    D.logo(245, m, H * .148, just='left')
+    D.text('Produktnamn', ['Glacier White'], 'Jost-Regular', 54, m, H * .238, just='left')
+    hoger(D, 'MagSafe & Qi2.', 'Jost-Regular', 34, W - m, H * .238, namn='Fakta')
+    return D, 8, '39-variant-podium-vit'
+
+def r40():  # ref 5, annan färgordning + text
+    bg = d.grade(bg_fit(src('r5macB').convert('RGB'), 1080, 1920)); D = d.Design(bg, 'D'); W, H = D.W, D.H
+    D.logo(165, W / 2, H * .147)
+    D.text('Produktnamn', ['Three colors. One feel.'], 'Jost-Regular', 58, W / 2, H * .214)
+    D.text('Underrad', ['1 mm thin · 37 N52 magnets · MagSafe'], 'Jost-Regular', 32, W / 2, H * .266, alpha=240)
+    return D, 5, '40-variant-tre-skal'
+
 # ---- NYA ANNONSER LÄGGS IN OVANFÖR DENNA RAD ----
 if __name__ == '__main__':
     for a in sys.argv[1:]:
