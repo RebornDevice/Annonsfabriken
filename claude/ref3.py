@@ -318,6 +318,16 @@ def r54():  # ref 37, tre skal ovanifrån i olika vinklar
     hoger(D, '37 N52 magnets.', 'Poppins-Regular', 36, W - m, H * .954, namn='Underrad 2')
     return D, 37, '54-tre-skal-ovanifran'
 
+def r55():  # ref 37, variant: svart främst, varm sand
+    bg = bg_fit(src('r37macV').convert('RGB'), 1080, 1080); D = d.Design(bg, 'L'); W, H = D.W, D.H; m = W * .06
+    D.ink = (36, 28, 20)
+    D.logo(220, m, H * .085, just='left')
+    D.text('Nyhet', ['SIMPLY.', 'THIN.'], 'Poppins-Bold', 60, m, H * .855, just='left', radavst=1.0)
+    hoger(D, 'RD CASE V4', 'Poppins-SemiBold', 38, W - m, H * .868, namn='Rubrik')
+    hoger(D, 'iPhone 18 Pro Max', 'Poppins-Regular', 36, W - m, H * .912, namn='Underrad 1')
+    hoger(D, 'MagSafe & Qi2.', 'Poppins-Regular', 36, W - m, H * .954, namn='Underrad 2')
+    return D, 37, '55-variant-ovanifran-sand'
+
 # ---- NYA ANNONSER LÄGGS IN OVANFÖR DENNA RAD ----
 if __name__ == '__main__':
     for a in sys.argv[1:]:
