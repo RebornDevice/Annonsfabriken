@@ -245,6 +245,14 @@ def r46():  # ref 30, mörk variant, svart skal främst
     D.logo(200, W / 2, H * .925)
     return D, 30, '46-variant-fyra-skal-mork'
 
+def r47():  # ref 33, fyra skal i solfjäder
+    bg = bg_fit(src('r33mac').convert('RGB'), 1080, 1080); D = d.Design(bg, 'L'); W, H = D.W, D.H
+    D.ink = (10, 10, 12)
+    D.text('Rubrik', ['RD Case V4'], 'Poppins-Bold', 96, W / 2, H * .11)
+    D.text('Underrad', ['for iPhone 18 Pro Max'], 'Poppins-SemiBold', 36, W / 2, H * .205)
+    D.logo(190, W / 2, H * .885)
+    return D, 33, '47-fyra-skal-solfjader'
+
 # ---- NYA ANNONSER LÄGGS IN OVANFÖR DENNA RAD ----
 if __name__ == '__main__':
     for a in sys.argv[1:]:
