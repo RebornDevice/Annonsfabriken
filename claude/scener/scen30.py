@@ -20,3 +20,18 @@ L['material_fix']()
 KD = globals().get('KAMAVST', 1.0)  # längre kameraavstånd = plattare perspektiv (samma bildutsnitt)
 if KD != 1.0:
     c = bpy.context.scene.camera; c.location = (0, -KD, 0); c.data.lens *= KD
+if globals().get('TYG'):  # bakgrund: mjukt skrynkligt vitt tyg (lakan), utan telefoner
+    for o in list(bpy.data.objects):
+        if o.type == 'MESH': bpy.data.objects.remove(o, do_unlink=True)
+    bpy.ops.mesh.primitive_plane_add(size=1.2); t = bpy.context.object; t.parent = r; t.location = (0, 0, -0.004)
+    bpy.ops.object.modifier_add(type='SUBSURF'); t.modifiers[-1].levels = 6; t.modifiers[-1].render_levels = 6; t.modifiers[-1].subdivision_type = 'SIMPLE'
+    for sk, st, nm in [(0.07, 0.045, 'stor'), (0.025, 0.01, 'liten')]:
+        tx = bpy.data.textures.new(nm, 'CLOUDS'); tx.noise_scale = sk; tx.noise_depth = 2
+        d = t.modifiers.new(nm, 'DISPLACE'); d.texture = tx; d.strength = st; d.mid_level = 0.5
+    bpy.ops.object.shade_smooth()
+    m = L['mat_enkel']((0.8, 0.79, 0.77), 0.95); t.data.materials.append(m)
+    for o in list(bpy.data.objects):
+        if o.type == 'LIGHT': o.data.energy *= 0.35
+    sl = bpy.data.lights.new('fonster', 'SUN'); sl.energy = 3.2; sl.angle = math.radians(6)
+    so = bpy.data.objects.new('fonster', sl); bpy.context.scene.collection.objects.link(so)
+    so.rotation_euler = (R @ mathutils.Vector((-0.8, 0.5, -0.45))).to_track_quat('-Z', 'Y').to_euler()
