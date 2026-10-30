@@ -280,6 +280,14 @@ def r50():  # ref 42, fyra liggande skal i diagonal rad
     D.logo(200, W / 2, H * .91)
     return D, 42, '50-fyra-skal-liggande-rad'
 
+def r51():  # ref 42, variant mörk grafit
+    bg = bg_fit(src('r42macD').convert('RGB'), 1080, 1350); D = d.Design(bg, 'D'); W, H = D.W, D.H
+    D.text('Rubrik', ['THIN BY DESIGN'], 'Inter-SemiBold', 96, W / 2, H * .175)
+    D.text('Underrad', ['RD Case V4 for iPhone 18 Pro Max'], 'Inter-Regular', 40, W / 2, H * .25, alpha=230)
+    D.text('Fakta', ['1 mm thin  \u00b7  37 N52 magnets  \u00b7  MagSafe & Qi2'], 'Inter-Regular', 34, W / 2, H * .74, alpha=220)
+    D.logo(200, W / 2, H * .91)
+    return D, 42, '51-variant-liggande-rad-mork'
+
 # ---- NYA ANNONSER LÄGGS IN OVANFÖR DENNA RAD ----
 if __name__ == '__main__':
     for a in sys.argv[1:]:
