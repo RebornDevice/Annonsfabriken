@@ -220,6 +220,16 @@ def r43():  # ref 53, vitt skal
     D.logo(230, W / 2, H * .885)
     return D, 53, '43-variant-studio-vit'
 
+def r44():  # ref 50, vitt + orange skal
+    bg = d.grade(bg_fit(src('r50macWO').convert('RGB'), 1080, 1080)); D = d.Design(bg, 'L'); W, H = D.W, D.H; m = W * .045
+    D.ink = (30, 32, 30)
+    D.text('Rubrik 1', ['Most cases are thick.'], 'PlayfairDisplay-Regular', 54, m, H * .093, just='left')
+    D.text('Rubrik 2', ['Ours is 1 mm.'], 'PlayfairDisplay-Italic', 54, m, H * .15, just='left', farg=(96, 70, 48))
+    D.text('Modell', ['IPHONE 18 PRO MAX'], 'Inter-Regular', 30, m, H * .218, just='left', spärr=3)
+    D.text('Leverans', ['SHIPPING NOW'], 'Inter-Medium', 20, m, H * .26, just='left', spärr=5, farg=(110, 80, 55))
+    D.logo(150, W - m - 150, H * .955, just='left')
+    return D, 50, '44-variant-salvia-vit-orange'
+
 # ---- NYA ANNONSER LÄGGS IN OVANFÖR DENNA RAD ----
 if __name__ == '__main__':
     for a in sys.argv[1:]:
