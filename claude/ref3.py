@@ -253,6 +253,14 @@ def r47():  # ref 33, fyra skal i solfjäder
     D.logo(190, W / 2, H * .885)
     return D, 33, '47-fyra-skal-solfjader'
 
+def r48():  # ref 33, variant: svart främst, sandbeige bakgrund
+    bg = bg_fit(src('r33macB').convert('RGB'), 1080, 1080); D = d.Design(bg, 'L'); W, H = D.W, D.H
+    D.ink = (24, 20, 16)
+    D.text('Rubrik', ['Black. Blue. White.'], 'Poppins-Bold', 92, W / 2, H * .11)
+    D.text('Underrad', ['1 mm thin  ·  MagSafe  ·  iPhone 18 Pro Max'], 'Poppins-Medium', 32, W / 2, H * .205)
+    D.logo(190, W / 2, H * .885)
+    return D, 33, '48-variant-solfjader-sand'
+
 # ---- NYA ANNONSER LÄGGS IN OVANFÖR DENNA RAD ----
 if __name__ == '__main__':
     for a in sys.argv[1:]:
