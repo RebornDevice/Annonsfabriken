@@ -298,6 +298,16 @@ def r52():  # ref 39, tre liggande skal på varm gradient
     D.text('Nyhet', ['NEW FOR', 'IPHONE 18 PRO MAX'], 'Poppins-Bold', 56, m, H * .855, just='left', radavst=1.0)
     return D, 39, '52-tre-skal-liggande-varm'
 
+def r53():  # ref 39, variant: svart främst, kall blågrå gradient
+    bg = bg_fit(src('r39macB').convert('RGB'), 1080, 1080); D = d.Design(bg, 'L'); W, H = D.W, D.H; m = W * .07
+    D.ink = (22, 26, 34)
+    D.logo(230, m, H * .085, just='left')
+    hoger(D, 'RD CASE V4', 'Poppins-SemiBold', 40, W - m, H * .07, namn='Rubrik')
+    hoger(D, 'Three colors.', 'Poppins-Regular', 40, W - m, H * .118, namn='Underrad 1')
+    hoger(D, 'Same 1 mm feel.', 'Poppins-Regular', 40, W - m, H * .166, namn='Underrad 2')
+    D.text('Nyhet', ['NEW FOR', 'IPHONE 18 PRO MAX'], 'Poppins-Bold', 56, m, H * .855, just='left', radavst=1.0)
+    return D, 39, '53-variant-tre-liggande-kall'
+
 # ---- NYA ANNONSER LÄGGS IN OVANFÖR DENNA RAD ----
 if __name__ == '__main__':
     for a in sys.argv[1:]:
