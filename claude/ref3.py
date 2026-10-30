@@ -37,6 +37,65 @@ def r19():
     hoger(D, 'Just 1 mm thin.', 'Jost-Regular', 34, W - m, H * .238, namn='Fakta')
     return D, 8, '19-podium-travagg'
 
+# 20 Skrivbordsbild ovanifrån med tangentbord, hörlurar och penna (ref 11) - bara bild, liten logga
+def r20():
+    bg = d.grade(bg_fit(src('r11mac').convert('RGB'), 1080, 1080)); D = d.Design(bg, 'D'); W, H = D.W, D.H
+    D.logo(150, W * .5, H * .955)
+    return D, 11, '20-skrivbord-ovanifran'
+
+# ---- Varianter (andra färger/texter) ----
+def r21():  # ref 10, svart skal
+    bg = d.grade(bg_fit(src('r10macB').convert('RGB'), 1080, 1920)); D = d.Design(bg, 'D'); W, H = D.W, D.H; m = W * .087; y = H * .178
+    D.text('Rubrik', ['Just 1 mm.'], 'Jost-Regular', 56, m, y, just='left')
+    D.text('Underrad', ['RD Case V4 in', 'Black'], 'Jost-Regular', 26, m, y + 48, just='left', radavst=1.3)
+    D.logo(175, W - m - 175, y - 26, just='left')
+    hoger(D, 'MagSafe & Qi2', 'Jost-Regular', 26, W - m, y + 48, namn='Fakta')
+    return D, 10, '21-variant-sand-svart'
+
+def r22():  # ref 15, vitt skal
+    bg = d.grade(bg_fit(src('r15macW').convert('RGB'), 1080, 1920)); D = d.Design(bg, 'D'); W, H = D.W, D.H; m = W * .087; y = H * .172
+    D.text('Rubrik', ['Barely there.'], 'Jost-Regular', 56, m, y, just='left')
+    D.text('Underrad', ['RD Case V4 in', 'Glacier White'], 'Jost-Regular', 26, m, y + 48, just='left', radavst=1.3)
+    D.logo(175, W - m - 175, y - 26, just='left')
+    hoger(D, '37 N52 magnets', 'Jost-Regular', 26, W - m, y + 48, namn='Fakta')
+    return D, 15, '22-variant-lera-vit'
+
+def r23():  # ref 8, blått skal
+    bg = d.grade(bg_fit(src('r8macB').convert('RGB'), 1080, 1920)); D = d.Design(bg, 'D'); W, H = D.W, D.H; m = W * .09
+    D.logo(245, m, H * .148, just='left')
+    D.text('Produktnamn', ['RD Case V4'], 'Jost-Regular', 54, m, H * .238, just='left')
+    hoger(D, '37 N52 magnets.', 'Jost-Regular', 34, W - m, H * .238, namn='Fakta')
+    return D, 8, '23-variant-podium-bla'
+
+def r24():  # ref 11, vitt skal på skrivbordet
+    bg = d.grade(bg_fit(src('r11macW').convert('RGB'), 1080, 1080)); D = d.Design(bg, 'D'); W, H = D.W, D.H
+    D.logo(150, W * .5, H * .955)
+    return D, 11, '24-variant-skrivbord-vit'
+
+# 25 Native Union "Active Case" fyra skal på bord (ref 28)
+def r25():
+    bg = d.grade(bg_fit(src('r28mac').convert('RGB'), 1080, 1080)); D = d.Design(bg, 'D'); W, H = D.W, D.H
+    D.text('Rubrik', ['RD CASE V4'], 'Oswald-SemiBold', 108, W / 2, H * .175, spärr=2)
+    D.text('Under', ['FOR IPHONE 18 PRO MAX'], 'Oswald-SemiBold', 34, W / 2, H * .228)
+    D.logo(200, W / 2, H * .905)
+    return D, 28, '25-fyra-skal-bord'
+
+# 26 "Rain. Handled." i vått gräs (ref 54)
+def r26():
+    bg = d.grade(bg_fit(src('r54mac').convert('RGB'), 1080, 1920)); D = d.Design(bg, 'D'); W, H = D.W, D.H
+    D.text('Rubrik', ['BARELY.', 'THERE.'], 'Jost-Medium', 56, W * .5, H * .158, spärr=8, radavst=1.18)
+    D.text('Under', ['RD Case V4 for iPhone 18 Pro Max'], 'Jost-Regular', 27, W * .5, H * .226, alpha=235)
+    D.logo(150, W / 2, H * .94)
+    return D, 54, '26-vatt-gras'
+
+# 27 Mous "Perfect Match" svävande över klippa (ref 35)
+def r27():
+    bg = d.grade(bg_fit(src('r35mac').convert('RGB'), 1080, 1920)); D = d.Design(bg, 'D'); W, H = D.W, D.H
+    D.logo(190, W * .5, H * .352)
+    D.text('Rubrik', ['ZERO BULK.'], 'Jost-SemiBold', 84, W * .5, H * .418, spärr=2)
+    D.text('Under', ['1 MM THIN IN DEEP BLUE'], 'Jost-Medium', 27, W * .5, H * .456, spärr=4, alpha=235)
+    return D, 35, '27-svavar-klippa'
+
 # ---- NYA ANNONSER LÄGGS IN OVANFÖR DENNA RAD ----
 if __name__ == '__main__':
     for a in sys.argv[1:]:
