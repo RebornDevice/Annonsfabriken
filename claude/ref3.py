@@ -336,6 +336,15 @@ def r56():  # ref 4, tre skal på skrynkligt vitt lakan
     D.logo(190, W * .17, H * .93)
     return D, 4, '56-tre-skal-lakan'
 
+def r57():  # ref 55, tre stående skal mot vit vägg
+    bg = bg_fit(src('r55mac').convert('RGB'), 1080, 1350); D = d.Design(bg, 'L'); W, H = D.W, D.H
+    D.ink = (40, 44, 40)
+    D.text('Rubrik', ['Freshly Dropped.'], 'PlayfairDisplay-Regular', 96, W / 2, H * .19)
+    D.text('Underrad', ['RD CASE V4 FOR IPHONE 18 PRO MAX'], 'Inter-Medium', 28, W / 2, H * .27, spärr=3)
+    D.logo(150, W * .105, H * .87, just='left')
+    hoger(D, '1 MM THIN  \u2022  37 N52 MAGNETS  \u2022  MAGSAFE', 'Inter-Medium', 18, W * .9, H * .87, namn='Fakta')
+    return D, 55, '57-tre-staende-vagg'
+
 # ---- NYA ANNONSER LÄGGS IN OVANFÖR DENNA RAD ----
 if __name__ == '__main__':
     for a in sys.argv[1:]:
