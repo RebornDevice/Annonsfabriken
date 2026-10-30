@@ -238,6 +238,13 @@ def r45():  # ref 30, fyra skal i diagonal rad
     D.logo(200, W / 2, H * .925)
     return D, 30, '45-fyra-skal-rad'
 
+def r46():  # ref 30, mörk variant, svart skal främst
+    bg = bg_fit(src('r30macD').convert('RGB'), 1080, 1080); D = d.Design(bg, 'D'); W, H = D.W, D.H
+    D.text('Rubrik', ['iPhone 18 Pro Max'], 'Inter-Regular', 74, W / 2, H * .09)
+    D.text('Underrad', ['1 mm thin. 37 N52 magnets.'], 'Inter-Regular', 38, W / 2, H * .158, alpha=225)
+    D.logo(200, W / 2, H * .925)
+    return D, 30, '46-variant-fyra-skal-mork'
+
 # ---- NYA ANNONSER LÄGGS IN OVANFÖR DENNA RAD ----
 if __name__ == '__main__':
     for a in sys.argv[1:]:
