@@ -261,6 +261,16 @@ def r48():  # ref 33, variant: svart främst, sandbeige bakgrund
     D.logo(190, W / 2, H * .885)
     return D, 33, '48-variant-solfjader-sand'
 
+def r49():  # ref 50, blått + vitt skal, varm terrakotta
+    bg = d.grade(bg_fit(src('r50macBW').convert('RGB'), 1080, 1080)); D = d.Design(bg, 'L'); W, H = D.W, D.H; m = W * .045
+    D.ink = (40, 26, 20)
+    D.text('Rubrik 1', ['Most cases hide your iPhone.'], 'PlayfairDisplay-Regular', 50, m, H * .093, just='left')
+    D.text('Rubrik 2', ["Ours is 1 mm thin."], 'PlayfairDisplay-Italic', 50, m, H * .148, just='left', farg=(250, 236, 222))
+    D.text('Modell', ['IPHONE 18 PRO MAX'], 'Inter-Regular', 30, m, H * .218, just='left', spärr=3)
+    D.text('Leverans', ['SHIPPING NOW'], 'Inter-Medium', 20, m, H * .26, just='left', spärr=5, farg=(250, 236, 222))
+    D.logo(150, W - m - 150, H * .955, just='left')
+    return D, 50, '49-variant-terrakotta-bla-vit'
+
 # ---- NYA ANNONSER LÄGGS IN OVANFÖR DENNA RAD ----
 if __name__ == '__main__':
     for a in sys.argv[1:]:
