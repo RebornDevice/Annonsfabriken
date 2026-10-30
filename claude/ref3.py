@@ -230,6 +230,14 @@ def r44():  # ref 50, vitt + orange skal
     D.logo(150, W - m - 150, H * .955, just='left')
     return D, 50, '44-variant-salvia-vit-orange'
 
+def r45():  # ref 30, fyra skal i diagonal rad
+    bg = bg_fit(src('r30mac').convert('RGB'), 1080, 1080); D = d.Design(bg, 'L'); W, H = D.W, D.H
+    D.ink = (12, 12, 14)
+    D.text('Rubrik', ['iPhone 18 Pro Max'], 'Inter-Regular', 74, W / 2, H * .09)
+    D.text('Underrad', ['RD Case V4'], 'Inter-Regular', 40, W / 2, H * .158, alpha=235)
+    D.logo(200, W / 2, H * .925)
+    return D, 30, '45-fyra-skal-rad'
+
 # ---- NYA ANNONSER LÄGGS IN OVANFÖR DENNA RAD ----
 if __name__ == '__main__':
     for a in sys.argv[1:]:
