@@ -9,7 +9,7 @@ VRID = globals().get('VRID', 0)
 W = globals().get('BW', 1080); H = globals().get('BH', 1080)
 r = L['star'](FARGER[0], p, W, H, ljus=[('nyckel', (-0.5, 0.35, 0.5), 30, 0.9), ('kant', (0.5, 0.3, -0.25), 12, 0.6), ('fyll', (0.15, 0.05, 0.7), 8, 1.5)], amb=0.6)
 if globals().get('LIGG'):  # liggande telefoner: golvet = skärmens plan
-    g = bpy.data.objects['golv']; g.location = (0, 0, -0.0003); g.rotation_euler = (0, 0, 0)
+    g = bpy.data.objects['golv']; g.location = (0, 0, globals().get('GOLVZ', -0.0003)); g.rotation_euler = (0, 0, 0)
 bpy.context.view_layer.update(); R = r.matrix_world.to_3x3()
 for i, f in enumerate(FARGER[1:], 1):
     off = R @ mathutils.Vector((STEG[0] * i, STEG[1] * i, STEG[2] * i))
